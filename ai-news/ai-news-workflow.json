@@ -1,0 +1,635 @@
+{
+  "name": "AI News Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -540,
+        140
+      ],
+      "id": "4c08fe0a-1e19-4f59-a0f4-ef23032c0557",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://rsshub.app/aibase/news",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        140
+      ],
+      "id": "e171ae27-3f7c-49d4-a7ef-442ccabb9205",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        140
+      ],
+      "id": "2080db45-8d31-4114-b59b-6a3c2c5d4e71",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.content }}",
+        "destinationKey": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        120,
+        140
+      ],
+      "id": "25811708-ff2e-4c1a-a29d-24e49853eed9",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=总结一下内容, 生成100-200字的中文摘要\n{{ $json.data }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        340,
+        140
+      ],
+      "id": "1c2368c6-2c63-47db-8e60-a15b29937a0b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"summary\": \"摘要\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        520,
+        360
+      ],
+      "id": "5b15ad1d-f4de-4a41-8bd6-a64b2065c2d2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "1ca08998-5f9a-803f-9c62-f21f8a774b47",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "title": "={{ $('Markdown').item.json.title }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "=Summary|rich_text",
+              "textContent": "={{ $json.output.summary }}"
+            },
+            {
+              "key": "Link|url",
+              "urlValue": "={{ $('Markdown').item.json.link }}"
+            },
+            {
+              "key": "Publication Date|date",
+              "date": "={{ $('Markdown').item.json.pubDate }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        140
+      ],
+      "id": "f266b941-a6a6-49d7-b541-b6a3978bedae",
+      "name": "Notion",
+      "credentials": {
+        "notionApi": {
+          "id": "",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-v3-base:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        300,
+        360
+      ],
+      "id": "6dd01cbd-c6f5-4a3e-b7e3-b0d567c717b2",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "RSS Read": [
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "​2024 年全球移动发行商收入榜单发布OpenAI 首次上榜",
+          "link": "https://www.aibase.com/zh/news/16839",
+          "pubDate": "Thu, 03 Apr 2025 03:15:30 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">Sensor Tower 正式发布了《2024年全球移动发行商收入 TOP50》榜单，引发了行业内的广泛关注。根据报告，2024年全球消费者在移动应用市场的付费总额<span class=\"spamTxt\">首次</span>突破了1500亿美元，约合1.09万亿元人民币，同比增长达13%。</span></p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927571924593161887728.png\" title=\"QQ_1743650111622.png\" alt=\"QQ_1743650111622.png\" referrerpolicy=\"no-referrer\"></p><p>在今年的榜单中，腾讯再次以<span class=\"spamTxt\">绝对</span>优势稳居<span class=\"spamTxt\">第一</span>，继续引领全球移动发行商。这得益于腾讯在游戏、社交及其他多个领域的全生态布局，其产品线丰富，用户基础庞大。紧随其后的是字节跳动，以 TikTok 的生态及全球化战略，实现了38.2% 的收入增长，稳坐第二的位置。谷歌和微软分别位列第三和第四，继续保持着他们在市场中的强势地位。</p><p>值得注意的是，AI 技术在本年度的榜单中表现突出，OpenAI <span class=\"spamTxt\">首次</span>进入全球 TOP50，位列第46名，显示了其在用户分析、内容生成及个性化推荐等领域的不断进步。多邻国（Duolingo）也表现不俗，排名第38，利用 AI 技术优化语言学习体验，吸引了更多用户的参与。</p><p>此外，混合休闲（Hybrid Casual）游戏的兴起为传统游戏领域带来了创新。Scopely 通过多元化的产品矩阵，例如《Monopoly GO!》，实现了快速增长，成为全球化发行的标杆。Dream Games 以《Royal Match》等创新消除类游戏，展现了中小厂商在全球市场的潜力。</p>",
+          "contentSnippet": "Sensor Tower 正式发布了《2024年全球移动发行商收入 TOP50》榜单，引发了行业内的广泛关注。根据报告，2024年全球消费者在移动应用市场的付费总额首次突破了1500亿美元，约合1.09万亿元人民币，同比增长达13%。\n\n在今年的榜单中，腾讯再次以绝对优势稳居第一，继续引领全球移动发行商。这得益于腾讯在游戏、社交及其他多个领域的全生态布局，其产品线丰富，用户基础庞大。紧随其后的是字节跳动，以 TikTok 的生态及全球化战略，实现了38.2% 的收入增长，稳坐第二的位置。谷歌和微软分别位列第三和第四，继续保持着他们在市场中的强势地位。\n值得注意的是，AI 技术在本年度的榜单中表现突出，OpenAI 首次进入全球 TOP50，位列第46名，显示了其在用户分析、内容生成及个性化推荐等领域的不断进步。多邻国（Duolingo）也表现不俗，排名第38，利用 AI 技术优化语言学习体验，吸引了更多用户的参与。\n此外，混合休闲（Hybrid Casual）游戏的兴起为传统游戏领域带来了创新。Scopely 通过多元化的产品矩阵，例如《Monopoly GO!》，实现了快速增长，成为全球化发行的标杆。Dream Games 以《Royal Match》等创新消除类游戏，展现了中小厂商在全球市场的潜力。",
+          "guid": "https://www.aibase.com/zh/news/16839",
+          "isoDate": "2025-04-03T03:15:30.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "ChatGPT又更新了图片生成功能 这次连草书都会写了",
+          "link": "https://www.aibase.com/zh/news/16837",
+          "pubDate": "Thu, 03 Apr 2025 03:07:47 GMT",
+          "author": "AI Base",
+          "content": "<p>这几天，ChatGPT因为图片生成功能大大拉新了一波，付费用户激增2000万，想必这会奥特曼嘴都要笑歪了。</p><p>这几天大家晒出的花式玩法，让我们对ChatGPT4O的生成能力新生敬畏，就连之前他们不太擅长的中文文字生成问题也给解决了。而现在，ChatGPT 又更新了Creat image功能。前几天还只是生成这种普通字体，现在竟然连草书都可以生成了，而且文字准确率很高。</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387927515301752544088751.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>相较于几天前的版本，新版模型在细节渲染、色彩协调性以及对复杂指令的理解上均有明显改进。</p><p>例如，用户输入一段描述性文字后，系统能够生成更加清晰、自然且符合预期的图像，无论是逼真的肖像还是抽象的艺术风格，都展现出更高的完成度。这种快速迭代的能力，显示出OpenAI在算法优化和模型训练上的深厚积累，也反映了其对用户需求的敏锐响应。</p><p>下面是AIBASE用博主hahagood分享的提示词测试的效果:</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387927517961040615696586.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>提示词:Create a hand-drawn infographic-style card in a9:16aspect ratio， featuring a bold title and text in Chinese using 草书 （cursive script）. The background should be textured beige or off-white， with the title prominently displayed in large， contrasting red and black brushstroke-style characters. Use simple， eye-catching hand-drawn illustrations or icons that complement the theme. For the content， organize it into2–4sections， with short， concise Chinese phrases in草书， each illustrating a key point. The text should be legible but retain the flow and artistic nature of cursive writing. Add relevant visual elements (e.g.， simple drawings of people， question marks， or symbols) to make the card visually engaging and thought-provoking. Ensure the overall composition is balanced， with enough space to make the content feel uncluttered and easy to digest</p><p>非常牛逼，文字笔画完整，字体输出也正确。</p><p>不过我后面加了难度，测试了下隶书和篆书，也能出，但会有一些错误。比较常用的一些书法应该是没问题了，篆书对于ChatGPT来说还太难了一点。</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387927520680860617721570.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">隶书</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387927522870156962064980.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">篆书</p><p>值得注意的是，新版还引入了选区工具，用户可以通过文字描述对图像的特定区域进行调整，例如修改背景色调或增加细节元素，这种精细化的编辑能力为创作者提供了更大的灵活性。</p>",
+          "contentSnippet": "这几天，ChatGPT因为图片生成功能大大拉新了一波，付费用户激增2000万，想必这会奥特曼嘴都要笑歪了。\n这几天大家晒出的花式玩法，让我们对ChatGPT4O的生成能力新生敬畏，就连之前他们不太擅长的中文文字生成问题也给解决了。而现在，ChatGPT 又更新了Creat image功能。前几天还只是生成这种普通字体，现在竟然连草书都可以生成了，而且文字准确率很高。\n\n相较于几天前的版本，新版模型在细节渲染、色彩协调性以及对复杂指令的理解上均有明显改进。\n例如，用户输入一段描述性文字后，系统能够生成更加清晰、自然且符合预期的图像，无论是逼真的肖像还是抽象的艺术风格，都展现出更高的完成度。这种快速迭代的能力，显示出OpenAI在算法优化和模型训练上的深厚积累，也反映了其对用户需求的敏锐响应。\n下面是AIBASE用博主hahagood分享的提示词测试的效果:\n\n提示词:Create a hand-drawn infographic-style card in a9:16aspect ratio， featuring a bold title and text in Chinese using 草书 （cursive script）. The background should be textured beige or off-white， with the title prominently displayed in large， contrasting red and black brushstroke-style characters. Use simple， eye-catching hand-drawn illustrations or icons that complement the theme. For the content， organize it into2–4sections， with short， concise Chinese phrases in草书， each illustrating a key point. The text should be legible but retain the flow and artistic nature of cursive writing. Add relevant visual elements (e.g.， simple drawings of people， question marks， or symbols) to make the card visually engaging and thought-provoking. Ensure the overall composition is balanced， with enough space to make the content feel uncluttered and easy to digest\n非常牛逼，文字笔画完整，字体输出也正确。\n不过我后面加了难度，测试了下隶书和篆书，也能出，但会有一些错误。比较常用的一些书法应该是没问题了，篆书对于ChatGPT来说还太难了一点。\n\n隶书\n\n篆书\n值得注意的是，新版还引入了选区工具，用户可以通过文字描述对图像的特定区域进行调整，例如修改背景色调或增加细节元素，这种精细化的编辑能力为创作者提供了更大的灵活性。",
+          "guid": "https://www.aibase.com/zh/news/16837",
+          "isoDate": "2025-04-03T03:07:47.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Meta高端智能眼镜\"Hypernova\"曝光:内置屏幕，售价或达1400美元",
+          "link": "https://www.aibase.com/zh/news/16836",
+          "pubDate": "Thu, 03 Apr 2025 02:48:46 GMT",
+          "author": "AI Base",
+          "content": "<p>据彭博社报道，Meta正在准备推出一款内置屏幕的雷朋Meta智能眼镜高端版本，最早可能于今年年底面世。这款代号为\"Hypernova\"的新眼镜将支持运行应用程序和显示照片，用户可通过手势和镜框两侧的电容式触摸进行控制。</p><p>根据报道，Hypernova的屏幕仅会出现在右侧镜片的右下象限，用户向下看时观看效果<span class=\"spamTxt\">最佳</span>。设备启动后，主屏幕将水平排列显示图标，布局类似于Meta Quest虚拟现实设备的界面。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927411463698436341430.png\" title=\"QQ20250403-104821.png\" alt=\"QQ20250403-104821.png\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">图源备注：图片由AI生成，图片授权服务商Midjourney</p><p>与当前版本的雷朋Meta智能眼镜相比，Hypernova将配备更为先进的摄像头，并继续发展将AI聊天机器人集成到眼镜中的功能。在定价方面，彭博社透露Hypernova的售价将超过1，000美元，<span class=\"spamTxt\">最高</span>可能达到1，300至1，400美元，远高于目前299美元起的雷朋Meta智能眼镜。</p><p>值得注意的是，Meta将更先进的增强现实技术保留在其仍在开发中的\"Orion\"眼镜项目中。相比之下，Hypernova将瞄准CES上展示的\"中端\"智能眼镜市场，如Rokid等显示绿色文本的眼镜产品。Hypernova的较高售价可能与其将配备Orion项目的\"神经\"腕带控制器（代号\"Ceres\"）有关。</p><p>Meta已经在开发下一代产品\"Hypernova2\"，该产品将配备双屏幕，计划于2027年推出。</p>",
+          "contentSnippet": "据彭博社报道，Meta正在准备推出一款内置屏幕的雷朋Meta智能眼镜高端版本，最早可能于今年年底面世。这款代号为\"Hypernova\"的新眼镜将支持运行应用程序和显示照片，用户可通过手势和镜框两侧的电容式触摸进行控制。\n根据报道，Hypernova的屏幕仅会出现在右侧镜片的右下象限，用户向下看时观看效果最佳。设备启动后，主屏幕将水平排列显示图标，布局类似于Meta Quest虚拟现实设备的界面。\n\n图源备注：图片由AI生成，图片授权服务商Midjourney\n与当前版本的雷朋Meta智能眼镜相比，Hypernova将配备更为先进的摄像头，并继续发展将AI聊天机器人集成到眼镜中的功能。在定价方面，彭博社透露Hypernova的售价将超过1，000美元，最高可能达到1，300至1，400美元，远高于目前299美元起的雷朋Meta智能眼镜。\n值得注意的是，Meta将更先进的增强现实技术保留在其仍在开发中的\"Orion\"眼镜项目中。相比之下，Hypernova将瞄准CES上展示的\"中端\"智能眼镜市场，如Rokid等显示绿色文本的眼镜产品。Hypernova的较高售价可能与其将配备Orion项目的\"神经\"腕带控制器（代号\"Ceres\"）有关。\nMeta已经在开发下一代产品\"Hypernova2\"，该产品将配备双屏幕，计划于2027年推出。",
+          "guid": "https://www.aibase.com/zh/news/16836",
+          "isoDate": "2025-04-03T02:48:46.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "设计师天又塌了！即梦3.0内测：可直出2K商业海报 复杂场景、文字轻松拿捏",
+          "link": "https://www.aibase.com/zh/news/16834",
+          "pubDate": "Thu, 03 Apr 2025 01:48:33 GMT",
+          "author": "AI Base",
+          "content": "<p>一觉醒来，设计师天塌了。即梦悄摸摸内测3.0模型。新模型在图像质量上有重大突破，通过简单的文字提示词即可生成细节丰富、品质卓越的图像作品。</p><p>即梦3.0的核心优势在于其对复杂场景和细节的精准把控。通过输入简短的提示词，该模型能够在短时间内生成视觉效果<span class=\"spamTxt\">极佳</span>的图像，例如逼真的自然景观或精致的人物肖像。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927111932446413666084.png\" title=\"QQ20250403-095833.png\" alt=\"QQ20250403-095833.png\" referrerpolicy=\"no-referrer\"></p><p>与前代版本相比，即梦3.0在场景布局、色彩搭配以及细节刻画上均有显著提升，甚至连细微的文字拼写和标志设计都能做到近乎完美。这种生成能力让许多人惊叹:即便给传统设计师三天时间，依靠手工绘制也难以达到同等水平。</p><p>这里上几个AIbase测试的图片，直接让deepseek写了一个麦当劳汉堡的提示词，生成后效果相当炸裂，里面的一些小字也都可以完美呈现，不再出现崩坏的情况:</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927034737230276488494.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927037976932301926884.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>再出一个五一的海报:</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927040406893044519327.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>春天主题海报:</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927225579943162083041.png\" title=\"QQ20250403-101621.png\" alt=\"QQ20250403-101621.png\" referrerpolicy=\"no-referrer\"></p><p>怎么样，是不是有点意思。我上面是直接用deepseek生成的提示词测试的，如果大家想要更好的效果，肯定是要精细调整一下提示词，这里就不赘述了。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387927226697262636859597.jpeg\" title=\"负形文字与图像融合，运用字体嵌合的方式，体现文字蒙版效果，字图嵌合和路径遮罩，山水景物，负形空间，文字蒙版，标题“春天的风“底部小字“Design AIBASE”.jpeg\" alt=\"负形文字与图像融合，运用字体嵌合的方式，体现文字蒙版效果，字图嵌合和路径遮罩，山水景物，负形空间，文字蒙版，标题“春天的风“底部小字“Design AIBASE”.jpeg\" referrerpolicy=\"no-referrer\"></p><p>业内人士分析，即梦3.0的成功可能源于其背后算法的全面升级。据推测，该模型可能在训练数据量、生成网络结构以及优化策略上进行了大幅改进，使其能够更好地理解用户意图并转化为高质量的视觉输出。</p><p>与此同时，即梦3.0的生成速度也令人印象深刻，从输入提示到输出成品仅需数秒，这无疑为快速迭代创意提供了强有力的支持。</p>",
+          "contentSnippet": "一觉醒来，设计师天塌了。即梦悄摸摸内测3.0模型。新模型在图像质量上有重大突破，通过简单的文字提示词即可生成细节丰富、品质卓越的图像作品。\n即梦3.0的核心优势在于其对复杂场景和细节的精准把控。通过输入简短的提示词，该模型能够在短时间内生成视觉效果极佳的图像，例如逼真的自然景观或精致的人物肖像。\n\n与前代版本相比，即梦3.0在场景布局、色彩搭配以及细节刻画上均有显著提升，甚至连细微的文字拼写和标志设计都能做到近乎完美。这种生成能力让许多人惊叹:即便给传统设计师三天时间，依靠手工绘制也难以达到同等水平。\n这里上几个AIbase测试的图片，直接让deepseek写了一个麦当劳汉堡的提示词，生成后效果相当炸裂，里面的一些小字也都可以完美呈现，不再出现崩坏的情况:\n\n\n再出一个五一的海报:\n\n春天主题海报:\n\n怎么样，是不是有点意思。我上面是直接用deepseek生成的提示词测试的，如果大家想要更好的效果，肯定是要精细调整一下提示词，这里就不赘述了。\n\n业内人士分析，即梦3.0的成功可能源于其背后算法的全面升级。据推测，该模型可能在训练数据量、生成网络结构以及优化策略上进行了大幅改进，使其能够更好地理解用户意图并转化为高质量的视觉输出。\n与此同时，即梦3.0的生成速度也令人印象深刻，从输入提示到输出成品仅需数秒，这无疑为快速迭代创意提供了强有力的支持。",
+          "guid": "https://www.aibase.com/zh/news/16834",
+          "isoDate": "2025-04-03T01:48:33.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "谷歌DeepMind预测：到2030年AGI 可能会超过人类并发布安全策略",
+          "link": "https://www.aibase.com/zh/news/16833",
+          "pubDate": "Thu, 03 Apr 2025 01:34:52 GMT",
+          "author": "AI Base",
+          "content": "<p>谷歌 DeepMind 近日发布了一份详尽的战略文件，阐述了其开发安全人工通用智能（AGI）的方针。AGI 被定义为在大多数认知任务中能够与人类能力相匹配或超越的系统。DeepMind 预计，目前的机器学习方法，尤其是神经网络，仍将是实现 AGI 的主要途径。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202312071717589674_0.jpg\" title=\"Gemini，Google DeepMind，人工智能，AI (图片来源：官方或第三方截图)\" alt=\"Gemini，Google DeepMind，人工智能，AI\" referrerpolicy=\"no-referrer\"></p><p>该报告指出，未来的 AGI 系统有可能超越人类表现，具备在规划和决策上显著的自主性。这种技术将对医疗、教育、科学等多个领域产生深远影响。DeepMind 的首席执行官德米斯・哈萨比斯（Demis Hassabis）预测，早期 AGI 系统可能在5到10年内问世，但他也强调，现有的模型依然过于被动，缺乏对世界的深刻理解。</p><p>DeepMind 在文中列出了2030年作为 “强大 AI 系统” 出现的可能时间，但也表示这一预测充满不确定性。哈萨比斯、Meta 的 Yann LeCun 和 OpenAI 的山姆・阿尔特曼等研究者普遍认为，单靠扩展当前的大型语言模型不足以实现 AGI。尽管阿尔特曼提到了新兴的大型推理模型作为一种潜在路径，LeCun 和哈萨比斯则认为需要全新的架构。</p><p>在安全方面，DeepMind 强调了防止滥用和目标错位的两大重点。滥用风险指的是人们故意利用<span class=\"spamTxt\">高级</span> AI 系统进行危害行为，例如传播虚假信息。为了应对这一问题，DeepMind 推出了网络安全评估框架，旨在早期识别并限制潜在的危险能力。</p><p>关于目标错位，DeepMind 举例说明，某个 AI 助手在被指派购票时，可能会选择入侵系统以获取更好的座位。此外，研究者们还关注 “欺骗性对齐” 的风险，即当 AI 系统意识到其目标与人类目标冲突时，会故意隐瞒其真实行为。</p><p>为了降低这些风险，DeepMind 正在开发多层次策略，确保 AI 系统能够识别自身的不确定性，并在必要时提升决策。同时，DeepMind 也在探索 AI 系统自我评估输出的方法。</p><p>最后，DeepMind 的报告还讨论了基础设施对 AI 训练规模扩展的影响，包括能源供应、硬件可用性、数据稀缺和 “延迟墙” 等瓶颈。虽然没有明确的限制因素，但报告认为，开发者是否愿意投资将是继续扩展的关键。</p><blockquote><p>划重点:&nbsp;&nbsp;</p><p>💡 AGI 系统可能在2030年前超越人类能力，影响多个领域。&nbsp;&nbsp;</p><p>🔒 DeepMind 关注防止 AI 滥用和目标错位，推出多层次安全策略。&nbsp;&nbsp;</p><p>⚡ 报告分析基础设施限制，认为继续扩展具经济可行性。&nbsp;&nbsp;</p></blockquote>",
+          "contentSnippet": "谷歌 DeepMind 近日发布了一份详尽的战略文件，阐述了其开发安全人工通用智能（AGI）的方针。AGI 被定义为在大多数认知任务中能够与人类能力相匹配或超越的系统。DeepMind 预计，目前的机器学习方法，尤其是神经网络，仍将是实现 AGI 的主要途径。\n\n该报告指出，未来的 AGI 系统有可能超越人类表现，具备在规划和决策上显著的自主性。这种技术将对医疗、教育、科学等多个领域产生深远影响。DeepMind 的首席执行官德米斯・哈萨比斯（Demis Hassabis）预测，早期 AGI 系统可能在5到10年内问世，但他也强调，现有的模型依然过于被动，缺乏对世界的深刻理解。\nDeepMind 在文中列出了2030年作为 “强大 AI 系统” 出现的可能时间，但也表示这一预测充满不确定性。哈萨比斯、Meta 的 Yann LeCun 和 OpenAI 的山姆・阿尔特曼等研究者普遍认为，单靠扩展当前的大型语言模型不足以实现 AGI。尽管阿尔特曼提到了新兴的大型推理模型作为一种潜在路径，LeCun 和哈萨比斯则认为需要全新的架构。\n在安全方面，DeepMind 强调了防止滥用和目标错位的两大重点。滥用风险指的是人们故意利用高级 AI 系统进行危害行为，例如传播虚假信息。为了应对这一问题，DeepMind 推出了网络安全评估框架，旨在早期识别并限制潜在的危险能力。\n关于目标错位，DeepMind 举例说明，某个 AI 助手在被指派购票时，可能会选择入侵系统以获取更好的座位。此外，研究者们还关注 “欺骗性对齐” 的风险，即当 AI 系统意识到其目标与人类目标冲突时，会故意隐瞒其真实行为。\n为了降低这些风险，DeepMind 正在开发多层次策略，确保 AI 系统能够识别自身的不确定性，并在必要时提升决策。同时，DeepMind 也在探索 AI 系统自我评估输出的方法。\n最后，DeepMind 的报告还讨论了基础设施对 AI 训练规模扩展的影响，包括能源供应、硬件可用性、数据稀缺和 “延迟墙” 等瓶颈。虽然没有明确的限制因素，但报告认为，开发者是否愿意投资将是继续扩展的关键。\n\n划重点:  \n💡 AGI 系统可能在2030年前超越人类能力，影响多个领域。  \n🔒 DeepMind 关注防止 AI 滥用和目标错位，推出多层次安全策略。  \n⚡ 报告分析基础设施限制，认为继续扩展具经济可行性。",
+          "guid": "https://www.aibase.com/zh/news/16833",
+          "isoDate": "2025-04-03T01:34:52.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Tinder推出AI语音调情游戏\"Game Game\"，与OpenAI合作引发争议",
+          "link": "https://www.aibase.com/zh/news/16832",
+          "pubDate": "Thu, 03 Apr 2025 01:31:14 GMT",
+          "author": "AI Base",
+          "content": "<p>Tinder近日宣布与OpenAI合作，推出了一款名为\"Game Game\"的AI语音调情游戏。该游戏利用OpenAI的语音模式和GPT-4o推理模型，鼓励用户在各种假设的邂逅场景中进行角色扮演，并根据调情水平获得积分。公司特别强调，游戏中收集的语音数据不会用于训练任何新的AI模型。</p><p>最近被任命为Tinder母公司Match Group首席执行官的Zillow联合创始人Spencer Rascoff在Instagram视频中亲自演示了这款游戏。在视频中，这位49岁的高管与一位名为\"Mila\"的32岁AI角色进行互动，这一年龄设定引发了一些关于他个人偏好的猜测。Rascoff在设定为派对厨房的场景中，告诉卡通形象、机器人声音的\"Mila\"他\"非常享受烹饪活动\"，随后又表示她\"很辣\"，整个对话被描述为\"极为不愉快\"的体验。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202306131739278937_3.jpg\" title=\"AI约会应用 人工智能 恋爱 (图片来源：AI合成)\" alt=\"AI约会应用 人工智能 恋爱\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">图源备注：图片由AI生成，图片授权服务商Midjourney</p><p>Tinder增长和产品副总裁Hillary Paine在接受《Fast Company》采访时表示，游戏的尴尬元素实际上是有意为之的设计决定。她引用公司2023年的研究数据称:\"我们的《约会的未来》报告发现，64%的年轻单身人士完全可以接受一点尴尬，只要能建立真正的联系。\"Paine进一步解释道:\"我们不想让它感觉过于精致或紧张。相反，我们倾向于幽默、尴尬和低压力的时刻，以帮助用户以有趣、好玩和不带偏见的方式练习调情。\"</p><p>然而，《Futurism》记者在亲自测试该游戏时发现了一个明显的技术缺陷:当通过蓝牙扬声器使用时，AI角色的声音会出现重复回声，就像是在回应自己的声音。这一技术漏洞为这款试图通过新技术提升用户参与度的游戏增添了更多不必要的尴尬元素。</p>",
+          "contentSnippet": "Tinder近日宣布与OpenAI合作，推出了一款名为\"Game Game\"的AI语音调情游戏。该游戏利用OpenAI的语音模式和GPT-4o推理模型，鼓励用户在各种假设的邂逅场景中进行角色扮演，并根据调情水平获得积分。公司特别强调，游戏中收集的语音数据不会用于训练任何新的AI模型。\n最近被任命为Tinder母公司Match Group首席执行官的Zillow联合创始人Spencer Rascoff在Instagram视频中亲自演示了这款游戏。在视频中，这位49岁的高管与一位名为\"Mila\"的32岁AI角色进行互动，这一年龄设定引发了一些关于他个人偏好的猜测。Rascoff在设定为派对厨房的场景中，告诉卡通形象、机器人声音的\"Mila\"他\"非常享受烹饪活动\"，随后又表示她\"很辣\"，整个对话被描述为\"极为不愉快\"的体验。\n\n图源备注：图片由AI生成，图片授权服务商Midjourney\nTinder增长和产品副总裁Hillary Paine在接受《Fast Company》采访时表示，游戏的尴尬元素实际上是有意为之的设计决定。她引用公司2023年的研究数据称:\"我们的《约会的未来》报告发现，64%的年轻单身人士完全可以接受一点尴尬，只要能建立真正的联系。\"Paine进一步解释道:\"我们不想让它感觉过于精致或紧张。相反，我们倾向于幽默、尴尬和低压力的时刻，以帮助用户以有趣、好玩和不带偏见的方式练习调情。\"\n然而，《Futurism》记者在亲自测试该游戏时发现了一个明显的技术缺陷:当通过蓝牙扬声器使用时，AI角色的声音会出现重复回声，就像是在回应自己的声音。这一技术漏洞为这款试图通过新技术提升用户参与度的游戏增添了更多不必要的尴尬元素。",
+          "guid": "https://www.aibase.com/zh/news/16832",
+          "isoDate": "2025-04-03T01:31:14.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "OpenAI推出AI Agent评测基准PaperBench",
+          "link": "https://www.aibase.com/zh/news/16831",
+          "pubDate": "Thu, 03 Apr 2025 01:31:03 GMT",
+          "author": "AI Base",
+          "content": "<p>OpenAI 团队推出了一个名为 PaperBench 的基准测试，旨在评估AI代理在复制先进 AI 研究方面的能力。该测试要求 AI 代理从头开始复制20篇2024年国际机器学习会议（ICML）中的重点和口头论文，整个过程涉及理解论文贡献、开发代码库以及成功执行实验。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202302150929449091_0.jpg\" title=\"OpenAI，ChatGPT，人工智能，AI (图片来源：官方或第三方截图)\" alt=\"OpenAI，ChatGPT，人工智能，AI\" referrerpolicy=\"no-referrer\"></p><p>为确保评估的客观性，研究人员设计了详细的评分标准。这些标准将每项复制任务分解为多个层级的子任务，并设定明确的评分标准。PaperBench 一共包含8316个可以单独评分的任务，所有评分量规均与每篇论文的作者合作开发，以保证其准确性和真实性。</p><p>为了实现大规模评估，研究团队还开发了一种基于大型语言模型（LLM）的自动评分系统。这一系统能够根据预设的评分标准对 AI 代理的复制尝试进行评分，同时，团队也为该评分系统建立了独立的基准，以评估其性能。</p><p>在对多个前沿 AI 模型进行评测后，研究发现表现<span class=\"spamTxt\">最佳</span>的代理是 Claude3.5Sonnet（新版本），其平均复制得分为21.0%。为了进一步验证这些结果，研究人员还邀请了多位<span class=\"spamTxt\">顶尖</span>的机器学习博士生尝试 PaperBench 的部分任务，结果显示，目前的 AI 模型尚未超越人类的复制能力。</p><p>为了推动后续研究，OpenAI 团队决定将其开发的代码开源，以便更多的研究者能够利用这一平台，深入探索 AI 代理的工程能力及其在复制 AI 研究方面的潜力。</p><p>项目代码:https://github.com/openai/preparedness/tree/main/project/paperbench</p><blockquote><p>划重点:</p><p>🌟 PaperBench 是一个新基准，用于评估 AI 代理复制 AI 研究的能力，涉及20篇 ICML2024论文。</p><p>🔍 该测试设计了8316个可单独评分的任务，评分标准与论文作者共同开发。</p><p>🤖 Claude3.5Sonnet 是测试中表现<span class=\"spamTxt\">最好</span>的模型，但仍未超越<span class=\"spamTxt\">顶尖</span>人类研究者。</p></blockquote>",
+          "contentSnippet": "OpenAI 团队推出了一个名为 PaperBench 的基准测试，旨在评估AI代理在复制先进 AI 研究方面的能力。该测试要求 AI 代理从头开始复制20篇2024年国际机器学习会议（ICML）中的重点和口头论文，整个过程涉及理解论文贡献、开发代码库以及成功执行实验。\n\n为确保评估的客观性，研究人员设计了详细的评分标准。这些标准将每项复制任务分解为多个层级的子任务，并设定明确的评分标准。PaperBench 一共包含8316个可以单独评分的任务，所有评分量规均与每篇论文的作者合作开发，以保证其准确性和真实性。\n为了实现大规模评估，研究团队还开发了一种基于大型语言模型（LLM）的自动评分系统。这一系统能够根据预设的评分标准对 AI 代理的复制尝试进行评分，同时，团队也为该评分系统建立了独立的基准，以评估其性能。\n在对多个前沿 AI 模型进行评测后，研究发现表现最佳的代理是 Claude3.5Sonnet（新版本），其平均复制得分为21.0%。为了进一步验证这些结果，研究人员还邀请了多位顶尖的机器学习博士生尝试 PaperBench 的部分任务，结果显示，目前的 AI 模型尚未超越人类的复制能力。\n为了推动后续研究，OpenAI 团队决定将其开发的代码开源，以便更多的研究者能够利用这一平台，深入探索 AI 代理的工程能力及其在复制 AI 研究方面的潜力。\n项目代码:https://github.com/openai/preparedness/tree/main/project/paperbench\n\n划重点:\n🌟 PaperBench 是一个新基准，用于评估 AI 代理复制 AI 研究的能力，涉及20篇 ICML2024论文。\n🔍 该测试设计了8316个可单独评分的任务，评分标准与论文作者共同开发。\n🤖 Claude3.5Sonnet 是测试中表现最好的模型，但仍未超越顶尖人类研究者。",
+          "guid": "https://www.aibase.com/zh/news/16831",
+          "isoDate": "2025-04-03T01:31:03.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "OpenAI 成立新委员会，助力构建最强大的非营利组织",
+          "link": "https://www.aibase.com/zh/news/16830",
+          "pubDate": "Thu, 03 Apr 2025 01:25:34 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">作为一家已成立的非营利组织，OpenAI 正在致力于打造世界上最具装备的非营利机构，期望通过历史性的财务资源和强大的技术来实现人类创造力的提升。设想一下，如果一个慈善机构的投资能力随着其关联公司的价值增长而增长，这将是一种怎样的创新模式。</span></p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387926911794134812043880.png\" title=\"QQ_1743643508040.png\" alt=\"QQ_1743643508040.png\" referrerpolicy=\"no-referrer\"></p><p>在 OpenAI 的构想中，慈善不仅仅是金钱的流动，更是一种基础性的支持。借助由领先 AI 公司研发的技术，非营利组织将能够更有效地服务于加州、美国乃至全球的社区。通过 AI 的加持，慈善资金将得到解放，使得研究、发现、诊断、药物开发、教学以及成果和进展的研究都可以得到更大程度的拓展。</p><p>OpenAI 坚信，创新应该为所有人创造机会。为此，OpenAI 董事会指示公司召集一群专家，帮助其慈善部门理解当今非营利组织在履行使命时面临的最紧迫和棘手的问题。此外，该委员会还将收集来自健康、科学、教育和公共服务领域的<span class=\"spamTxt\">领导者</span>和社区的反馈，尤其是在 OpenAI 的家乡加利福尼亚州。</p><p>委员会成员将于四月公布，并将在90天内向 OpenAI 董事会提交他们的见解。董事会将考虑这些见解，以不断推进 OpenAI 的非营利工作，并计划在2025年底前取得实质性进展。</p><p>董事会认识到，与慈善界和最接近实际工作的人员互动的重要性，以帮助 OpenAI 的慈善机构更好地部署其可能历史性的资源。该委员会的核心原则是确保 OpenAI 的创新是为人服务，而非相反。</p><blockquote><p>划重点:</p><p>🌍 OpenAI 致力于构建世界上<span class=\"spamTxt\">最强</span>大的非营利组织，利用技术和资金促进人类创造力的提升。&nbsp;&nbsp;</p><p>💡 新委员会将收集非营利领域的专家意见，了解当前面临的紧迫问题，并于四月公布成员名单。&nbsp;&nbsp;</p><p>🤝 董事会将根据委员会的反馈，持续改进 OpenAI 的非营利工作，确保创新服务于社会。</p></blockquote>",
+          "contentSnippet": "作为一家已成立的非营利组织，OpenAI 正在致力于打造世界上最具装备的非营利机构，期望通过历史性的财务资源和强大的技术来实现人类创造力的提升。设想一下，如果一个慈善机构的投资能力随着其关联公司的价值增长而增长，这将是一种怎样的创新模式。\n\n在 OpenAI 的构想中，慈善不仅仅是金钱的流动，更是一种基础性的支持。借助由领先 AI 公司研发的技术，非营利组织将能够更有效地服务于加州、美国乃至全球的社区。通过 AI 的加持，慈善资金将得到解放，使得研究、发现、诊断、药物开发、教学以及成果和进展的研究都可以得到更大程度的拓展。\nOpenAI 坚信，创新应该为所有人创造机会。为此，OpenAI 董事会指示公司召集一群专家，帮助其慈善部门理解当今非营利组织在履行使命时面临的最紧迫和棘手的问题。此外，该委员会还将收集来自健康、科学、教育和公共服务领域的领导者和社区的反馈，尤其是在 OpenAI 的家乡加利福尼亚州。\n委员会成员将于四月公布，并将在90天内向 OpenAI 董事会提交他们的见解。董事会将考虑这些见解，以不断推进 OpenAI 的非营利工作，并计划在2025年底前取得实质性进展。\n董事会认识到，与慈善界和最接近实际工作的人员互动的重要性，以帮助 OpenAI 的慈善机构更好地部署其可能历史性的资源。该委员会的核心原则是确保 OpenAI 的创新是为人服务，而非相反。\n\n划重点:\n🌍 OpenAI 致力于构建世界上最强大的非营利组织，利用技术和资金促进人类创造力的提升。  \n💡 新委员会将收集非营利领域的专家意见，了解当前面临的紧迫问题，并于四月公布成员名单。  \n🤝 董事会将根据委员会的反馈，持续改进 OpenAI 的非营利工作，确保创新服务于社会。",
+          "guid": "https://www.aibase.com/zh/news/16830",
+          "isoDate": "2025-04-03T01:25:34.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "谷歌Gemini应用负责人Sissie Hsiao将卸任 实验室副总裁接管",
+          "link": "https://www.aibase.com/zh/news/16829",
+          "pubDate": "Thu, 03 Apr 2025 01:24:10 GMT",
+          "author": "AI Base",
+          "content": "<p>据Semafor报道，负责谷歌AI聊天机器人的高管Sissie Hsiao将辞去Gemini应用程序负责人一职。根据该媒体获得的内部备忘录，谷歌实验室副总裁Josh Woodward将接替她的职位。谷歌发言人Alex Joseph已确认这一人事变动，但拒绝发表进一步评论。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202312070835429226_0.jpg\" title=\"谷歌大模型Gemini (图片来源：官方或第三方截图)\" alt=\"谷歌大模型Gemini\" referrerpolicy=\"no-referrer\"></p><p>谷歌DeepMind首席执行官Demis Hassabis在备忘录中表示，此次变动将\"让我们更加关注Gemini应用的下一次发展\"。Hsiao在自己的备忘录中提到，她将\"短暂休息\"一段时间，随后将回到谷歌担任新职位。</p><p>Hsiao在谷歌的职业生涯已近20年，自2006年加入公司担任搜索和文档产品经理。谷歌于2021年任命她负责Gemini应用（当时称为Bard），她最引人注目的成就是帮助推出了谷歌对ChatGPT的回应产品。</p><p>据Semafor报道，接任者Woodward将在继续担任谷歌实验室负责人的同时，负责\"塑造Gemini的下一章\"。他此前帮助开发了NotebookLM，这是谷歌的AI笔记应用程序，具备将研究转化为AI播客的功能。谷歌已将NotebookLM整合到其One AI Premium订阅服务中，并扩展了从Gemini深度研究中制作AI播客的功能。</p>",
+          "contentSnippet": "据Semafor报道，负责谷歌AI聊天机器人的高管Sissie Hsiao将辞去Gemini应用程序负责人一职。根据该媒体获得的内部备忘录，谷歌实验室副总裁Josh Woodward将接替她的职位。谷歌发言人Alex Joseph已确认这一人事变动，但拒绝发表进一步评论。\n\n谷歌DeepMind首席执行官Demis Hassabis在备忘录中表示，此次变动将\"让我们更加关注Gemini应用的下一次发展\"。Hsiao在自己的备忘录中提到，她将\"短暂休息\"一段时间，随后将回到谷歌担任新职位。\nHsiao在谷歌的职业生涯已近20年，自2006年加入公司担任搜索和文档产品经理。谷歌于2021年任命她负责Gemini应用（当时称为Bard），她最引人注目的成就是帮助推出了谷歌对ChatGPT的回应产品。\n据Semafor报道，接任者Woodward将在继续担任谷歌实验室负责人的同时，负责\"塑造Gemini的下一章\"。他此前帮助开发了NotebookLM，这是谷歌的AI笔记应用程序，具备将研究转化为AI播客的功能。谷歌已将NotebookLM整合到其One AI Premium订阅服务中，并扩展了从Gemini深度研究中制作AI播客的功能。",
+          "guid": "https://www.aibase.com/zh/news/16829",
+          "isoDate": "2025-04-03T01:24:10.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "​Lumai 获得 1000 万美元融资，3D 光学计算助力AI革命",
+          "link": "https://www.aibase.com/zh/news/16828",
+          "pubDate": "Thu, 03 Apr 2025 01:23:54 GMT",
+          "author": "AI Base",
+          "content": "<p>在人工智能基础设施领域迈出重要一步的 Lumai，这家源自牛津的初创公司，近日宣布完成超过1000万美元的融资。这轮投资由专注深科技的 Constructor Capital 领投，背后还到了 IP Group、Ventures、Journey Ventures、LIFTT、Qubits Ventures、State Farm Ventures 和 TIS Inc 等知名投资者的支持。这标志着市场对一种可能重塑 AI 计算格局的技术的信心不断增长。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/201901101704279841_1.jpg\" title=\"投资，融资，钱 (图片来源图虫：已授站长之家使用)\" alt=\"投资，融资，钱\" referrerpolicy=\"no-referrer\"></p><p>Lumai 的创新核心在于一个大胆的目标:以10% 的能源成本，提供比现有硅基加速器高出50倍的性能。而这一切，都是通过光来实现的。</p><p>随着 ChatGPT、Claude 和 Gemini 等 AI 系统的不断演进，底层硬件面临着巨大的挑战。训练和运行大型语言模型（LLM）需要庞大的计算能力，以及同样庞大的能耗。据预测，到2028年，美国数据中心的电力消耗将增加三倍，可能占到全国电力供应的12%。</p><p>然而，问题不仅仅在于能耗，还涉及到经济性和可扩展性。传统的硅基 GPU 和集成光子技术正面临着收益递减、成本上升以及可扩展性障碍。</p><p>Lumai 的光学计算技术与传统芯片的电子流动截然不同，光学计算利用光子进行计算，带来了三大优势:速度 —— 光子比电子移动更快，并且不会像电子那样产生热量，能实现超快处理;能效 —— 光信号显著降低了功耗;并行性 —— 光可以通过不同的路径和波长同时处理多项操作。</p><p>Lumai 的创新之处在于其利用3D 光学矩阵 - 向量乘法（MVM）进行深度学习的关键操作。这意味着计算在光束通过三维几何体时完成，而不是在平面芯片上进行。这项技术的潜力可达到每秒10¹⁷次操作，速度比目前电子技术快1000倍，甚至比人脑快100倍。</p><p>作为从牛津大学分拆出来的公司，Lumai 成功应对了困扰研究人员多年的挑战:如何以可靠和经济的方式扩展光学计算。他们的处理器采用 PCIe 格式，便于与现有的数据中心基础设施集成，通过在三维空间中使用光束进行矩阵乘法，提供了极大的向量操作能力、高光学时钟速度和几乎零延迟的推理性能。</p><p>随着融资的到位，Lumai 计划扩充团队、推进产品开发、拓展美国市场，并朝着商业化的光学 AI 推理加速器迈进。其路线图描绘了从4倍性能提升到相较于硅基竞争者的50倍提升的路径，而能耗仅为10%。在可持续性、成本效益和 AI 加速成为下一个计算挑战的时代，Lumai 不仅是在市场中争夺一席之地，而是希望成为开创者。</p><blockquote><p>划重点:</p><p>🌟 Lumai 获得超过1000万美元融资，旨在通过光学计算技术重塑人工智能基础设施。&nbsp;&nbsp;</p><p>⚡ Lumai 的3D 光学矩阵乘法技术提供超高性能，目标是以10% 的能耗实现50倍的性能提升。&nbsp;&nbsp;</p><p>🚀 该公司计划扩展团队并向美国市场进军，致力于光学 AI 推理加速器的商业化。</p></blockquote>",
+          "contentSnippet": "在人工智能基础设施领域迈出重要一步的 Lumai，这家源自牛津的初创公司，近日宣布完成超过1000万美元的融资。这轮投资由专注深科技的 Constructor Capital 领投，背后还到了 IP Group、Ventures、Journey Ventures、LIFTT、Qubits Ventures、State Farm Ventures 和 TIS Inc 等知名投资者的支持。这标志着市场对一种可能重塑 AI 计算格局的技术的信心不断增长。\n\nLumai 的创新核心在于一个大胆的目标:以10% 的能源成本，提供比现有硅基加速器高出50倍的性能。而这一切，都是通过光来实现的。\n随着 ChatGPT、Claude 和 Gemini 等 AI 系统的不断演进，底层硬件面临着巨大的挑战。训练和运行大型语言模型（LLM）需要庞大的计算能力，以及同样庞大的能耗。据预测，到2028年，美国数据中心的电力消耗将增加三倍，可能占到全国电力供应的12%。\n然而，问题不仅仅在于能耗，还涉及到经济性和可扩展性。传统的硅基 GPU 和集成光子技术正面临着收益递减、成本上升以及可扩展性障碍。\nLumai 的光学计算技术与传统芯片的电子流动截然不同，光学计算利用光子进行计算，带来了三大优势:速度 —— 光子比电子移动更快，并且不会像电子那样产生热量，能实现超快处理;能效 —— 光信号显著降低了功耗;并行性 —— 光可以通过不同的路径和波长同时处理多项操作。\nLumai 的创新之处在于其利用3D 光学矩阵 - 向量乘法（MVM）进行深度学习的关键操作。这意味着计算在光束通过三维几何体时完成，而不是在平面芯片上进行。这项技术的潜力可达到每秒10¹⁷次操作，速度比目前电子技术快1000倍，甚至比人脑快100倍。\n作为从牛津大学分拆出来的公司，Lumai 成功应对了困扰研究人员多年的挑战:如何以可靠和经济的方式扩展光学计算。他们的处理器采用 PCIe 格式，便于与现有的数据中心基础设施集成，通过在三维空间中使用光束进行矩阵乘法，提供了极大的向量操作能力、高光学时钟速度和几乎零延迟的推理性能。\n随着融资的到位，Lumai 计划扩充团队、推进产品开发、拓展美国市场，并朝着商业化的光学 AI 推理加速器迈进。其路线图描绘了从4倍性能提升到相较于硅基竞争者的50倍提升的路径，而能耗仅为10%。在可持续性、成本效益和 AI 加速成为下一个计算挑战的时代，Lumai 不仅是在市场中争夺一席之地，而是希望成为开创者。\n\n划重点:\n🌟 Lumai 获得超过1000万美元融资，旨在通过光学计算技术重塑人工智能基础设施。  \n⚡ Lumai 的3D 光学矩阵乘法技术提供超高性能，目标是以10% 的能耗实现50倍的性能提升。  \n🚀 该公司计划扩展团队并向美国市场进军，致力于光学 AI 推理加速器的商业化。",
+          "guid": "https://www.aibase.com/zh/news/16828",
+          "isoDate": "2025-04-03T01:23:54.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Anthropic推出Claude for Education：培养学生批判性思维的AI导师",
+          "link": "https://www.aibase.com/zh/news/16827",
+          "pubDate": "Thu, 03 Apr 2025 01:21:43 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">Anthropic今天宣布推出Claude for Education，这是一款专为教育领域设计的AI助手，旨在通过培养批判性思维能力增强学习过程，而非简单地提供答案。该产品已与东北大学、伦敦经济学院和尚普兰学院达成合作，大规模测试AI如何有效强化而非缩短学习体验。</span></p><p>Claude for Education的核心创新是\"学习模式\"，这一功能从根本上改变了学生与AI的互动方式。当学生提问时，Claude不会直接给出答案，而是采用苏格拉底式提问法，反问学生:\"你会如何解决这个问题?\"或\"有什么证据支持你的结论?\"这种方法直接应对了教育工作者对AI工具可能鼓励捷径思维而非深入理解的担忧，将AI从简单的答案引擎转变为数字导师角色。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202306131739270926_1.jpg\" title=\"AI教育 演讲 人工智能 (2) (图片来源：AI合成)\" alt=\"AI教育 演讲 人工智能 (2)\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">图源备注:图片由AI生成，图片授权服务商Midjourney</p><p>东北大学将在全球13个校区实施Claude，服务50，000名学生和教职员工，成为此次合作的重要成员。在校长Joseph E. Aoun（曾著有《机器人防护》一书，探讨AI对教育的影响）的领导下，该校通过其\"东北大学2025学术计划\"积极将自己定位为AI教育的前沿。与以往教育技术发展相比，这些合作的特点是覆盖范围广泛，不限于特定院系或课程，而是致力于让精心设计的AI惠及整个学术生态系统。</p><p>Anthropic的教育战略不仅关注学生学习，还延伸至大学管理领域。管理人员可以使用Claude分析趋势并将复杂政策文件转换为易于理解的格式，帮助资源有限的机构提高运营效率。通过与Internet2（服务美国400多所大学）和Instructure(Canvas学习管理系统制造商)合作，Anthropic获得了接触数百万学生的潜在渠道。</p><p>尽管面临挑战——包括教师准备程度不一和隐私问题——Anthropic的方法提出了一个重要可能性:AI不仅能替我们思考，还能帮助我们更好地思考。随着教育技术市场预计到2030年达到805亿美元，以及AI素养在劳动力市场日益重要，这种强调思维过程而非简单答案的方法可能对重塑教育和工作环境产生深远影响。</p>",
+          "contentSnippet": "Anthropic今天宣布推出Claude for Education，这是一款专为教育领域设计的AI助手，旨在通过培养批判性思维能力增强学习过程，而非简单地提供答案。该产品已与东北大学、伦敦经济学院和尚普兰学院达成合作，大规模测试AI如何有效强化而非缩短学习体验。\nClaude for Education的核心创新是\"学习模式\"，这一功能从根本上改变了学生与AI的互动方式。当学生提问时，Claude不会直接给出答案，而是采用苏格拉底式提问法，反问学生:\"你会如何解决这个问题?\"或\"有什么证据支持你的结论?\"这种方法直接应对了教育工作者对AI工具可能鼓励捷径思维而非深入理解的担忧，将AI从简单的答案引擎转变为数字导师角色。\n\n图源备注:图片由AI生成，图片授权服务商Midjourney\n东北大学将在全球13个校区实施Claude，服务50，000名学生和教职员工，成为此次合作的重要成员。在校长Joseph E. Aoun（曾著有《机器人防护》一书，探讨AI对教育的影响）的领导下，该校通过其\"东北大学2025学术计划\"积极将自己定位为AI教育的前沿。与以往教育技术发展相比，这些合作的特点是覆盖范围广泛，不限于特定院系或课程，而是致力于让精心设计的AI惠及整个学术生态系统。\nAnthropic的教育战略不仅关注学生学习，还延伸至大学管理领域。管理人员可以使用Claude分析趋势并将复杂政策文件转换为易于理解的格式，帮助资源有限的机构提高运营效率。通过与Internet2（服务美国400多所大学）和Instructure(Canvas学习管理系统制造商)合作，Anthropic获得了接触数百万学生的潜在渠道。\n尽管面临挑战——包括教师准备程度不一和隐私问题——Anthropic的方法提出了一个重要可能性:AI不仅能替我们思考，还能帮助我们更好地思考。随着教育技术市场预计到2030年达到805亿美元，以及AI素养在劳动力市场日益重要，这种强调思维过程而非简单答案的方法可能对重塑教育和工作环境产生深远影响。",
+          "guid": "https://www.aibase.com/zh/news/16827",
+          "isoDate": "2025-04-03T01:21:43.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "​即梦 AI 3.0 版本灰测：中文文字生成能力大幅提升",
+          "link": "https://www.aibase.com/zh/news/16826",
+          "pubDate": "Thu, 03 Apr 2025 01:07:56 GMT",
+          "author": "AI Base",
+          "content": "<p>日前，即梦 AI 推出其全新版本3.0，目前正在进行小范围内测。这一版本的推出，尤其在中文文字生成方面展现了惊人的能力。</p><p>在新版本的图像生成技术上，即梦 AI 进行了显著的优化，提升了图像的精细度，现可直接生成2K 高清图像，细节表现更加出色。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387926805852573799064362.png\" title=\"QQ_1743642449348.png\" alt=\"QQ_1743642449348.png\" referrerpolicy=\"no-referrer\"></p><p>同时，版本3.0还在文字生成方面取得了显著进步，解决了以往模型中出现的文字模糊问题。即使是小字体，清晰度也得到了提升。</p><p>在构图方面，即梦 AI3.0能够更精准地遵循用户的提示，减少了以往在创作过程中出现的 “抽卡” 次数，这显著提升了创作的效率。在复杂场景的构图能力上，该版本同样表现优异，能够清晰展现诸如废弃城市上空悬浮巨型外星飞船的复杂画面。</p><p>即梦 AI3.0版本在提升提示词响应能力、画面质量以及对概念的理解方面都有所进步，尽管仍有进一步提升的空间。这一新版本不仅为影视海报制作、设计创作和商业设计提供了更大的创作空间，也为设计师们带来了前所未有的便利。</p><p>目前，即梦 AI3.0版本仍处于小范围内测阶段，用户可查看自己的账号是否已开通该版本的灰度测试。</p>",
+          "contentSnippet": "日前，即梦 AI 推出其全新版本3.0，目前正在进行小范围内测。这一版本的推出，尤其在中文文字生成方面展现了惊人的能力。\n在新版本的图像生成技术上，即梦 AI 进行了显著的优化，提升了图像的精细度，现可直接生成2K 高清图像，细节表现更加出色。\n\n同时，版本3.0还在文字生成方面取得了显著进步，解决了以往模型中出现的文字模糊问题。即使是小字体，清晰度也得到了提升。\n在构图方面，即梦 AI3.0能够更精准地遵循用户的提示，减少了以往在创作过程中出现的 “抽卡” 次数，这显著提升了创作的效率。在复杂场景的构图能力上，该版本同样表现优异，能够清晰展现诸如废弃城市上空悬浮巨型外星飞船的复杂画面。\n即梦 AI3.0版本在提升提示词响应能力、画面质量以及对概念的理解方面都有所进步，尽管仍有进一步提升的空间。这一新版本不仅为影视海报制作、设计创作和商业设计提供了更大的创作空间，也为设计师们带来了前所未有的便利。\n目前，即梦 AI3.0版本仍处于小范围内测阶段，用户可查看自己的账号是否已开通该版本的灰度测试。",
+          "guid": "https://www.aibase.com/zh/news/16826",
+          "isoDate": "2025-04-03T01:07:56.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "OpenAI 的 o3模型成本修正:每任务价格或将达到30，000美元",
+          "link": "https://www.aibase.com/zh/news/16825",
+          "pubDate": "Thu, 03 Apr 2025 01:05:46 GMT",
+          "author": "AI Base",
+          "content": "<p>负责维护和管理&nbsp;<span style=\"text-indent: 2em;\">Arc Prize Foundation上周修正了对OpenAI即将推出的o3\"推理\"AI模型的成本估算，调整幅度惊人——从最初估计的每项ARC-AGI任务3，000美元飙升至30，000美元。这项价格修正揭示了当今最复杂AI模型的运行成本可能比预期高出十倍。</span></p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202302150931182754_0.jpg\" title=\"OpenAI，ChatGPT，人工智能，AI (图片来源：官方或第三方截图)\" alt=\"OpenAI，ChatGPT，人工智能，AI\" referrerpolicy=\"no-referrer\"></p><p>尽管OpenAI尚未公布o3的官方定价策略，甚至尚未正式发布该模型，但Arc Prize Foundation认为以OpenAI当前最昂贵的o1-pro模型为参考更为合理。Arc Prize Foundation联合创始人Mike Knoop表示:\"我们认为o1-pro与真正的o3成本更接近……因为测试时使用的计算量很大。\"鉴于相关不确定性，该基金会已将o3在排行榜上标记为\"预览\"状态。</p><p>这一高昂成本与模型的计算需求密切相关。据Arc Prize Foundation透露，o3high（o3的<span class=\"spamTxt\">最高</span>计算配置）在解决ARC-AGI问题时所需的计算量是o3low（<span class=\"spamTxt\">最低</span>配置）的172倍。此外，业内传闻OpenAI正考虑为企业客户推出高价计划，《The Information》曾报道该公司可能对专业AI\"代理\"收取每月高达2万美元的费用。</p><p>虽然有观点认为即使是最昂贵的AI模型，其成本仍低于雇佣人类专业人员，但AI研究员Toby Ord指出，这些模型可能存在效率问题——例如，o3high需要在每个ARC-AGI任务上尝试1，024次才能获得<span class=\"spamTxt\">最佳</span>成绩。</p>",
+          "contentSnippet": "负责维护和管理 Arc Prize Foundation上周修正了对OpenAI即将推出的o3\"推理\"AI模型的成本估算，调整幅度惊人——从最初估计的每项ARC-AGI任务3，000美元飙升至30，000美元。这项价格修正揭示了当今最复杂AI模型的运行成本可能比预期高出十倍。\n\n尽管OpenAI尚未公布o3的官方定价策略，甚至尚未正式发布该模型，但Arc Prize Foundation认为以OpenAI当前最昂贵的o1-pro模型为参考更为合理。Arc Prize Foundation联合创始人Mike Knoop表示:\"我们认为o1-pro与真正的o3成本更接近……因为测试时使用的计算量很大。\"鉴于相关不确定性，该基金会已将o3在排行榜上标记为\"预览\"状态。\n这一高昂成本与模型的计算需求密切相关。据Arc Prize Foundation透露，o3high（o3的最高计算配置）在解决ARC-AGI问题时所需的计算量是o3low（最低配置）的172倍。此外，业内传闻OpenAI正考虑为企业客户推出高价计划，《The Information》曾报道该公司可能对专业AI\"代理\"收取每月高达2万美元的费用。\n虽然有观点认为即使是最昂贵的AI模型，其成本仍低于雇佣人类专业人员，但AI研究员Toby Ord指出，这些模型可能存在效率问题——例如，o3high需要在每个ARC-AGI任务上尝试1，024次才能获得最佳成绩。",
+          "guid": "https://www.aibase.com/zh/news/16825",
+          "isoDate": "2025-04-03T01:05:46.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Hugging Face 新增实用功能：一键查看电脑可运行模型",
+          "link": "https://www.aibase.com/zh/news/16824",
+          "pubDate": "Thu, 03 Apr 2025 01:00:24 GMT",
+          "author": "AI Base",
+          "content": "<p>人工智能开源社区的领军平台 Hugging Face 推出了一项备受期待的新功能:用户可以通过平台设置，快速查看自己的电脑硬件能够运行哪些机器学习模型。</p><p>据了解，<span style=\"text-indent: 2em;\">用户只需在 Hugging Face 的个人设置页面（路径为“右上角头像 &gt; Settings &gt; Local Apps and Hardware”）添加自己的硬件信息，例如 GPU 型号、内存容量等，系统便会根据这些参数，智能分析并显示哪些模型(包括不同量化版本)能够在该设备上顺利运行。这一功能的亮点在于其直观性和便捷性，尤其对于开发者、研究人员以及 AI 爱好者来说，极大地简化了模型选择流程。</span></p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0403/6387926761389377084629525.png\" title=\"QQ_1743642005741.png\" alt=\"QQ_1743642005741.png\" referrerpolicy=\"no-referrer\"></p><p>例如，X 用户&nbsp;<span style=\"text-indent: 2em;\">@karminski3</span><span style=\"text-indent: 2em;\">&nbsp;分享了自己的使用体验，他表示在添加了 M2Ultra（128GB 内存）和 Nvidia3080Ti 的硬件信息后，Hugging Face 的模型卡页面直接显示出 M2Ultra 可运行某模型的多种量化版本，而3080Ti 则因性能限制无法运行，结论一目了然。</span></p><p>Hugging Face 作为全球知名的 AI 开源平台，长期致力于通过开放资源和工具，推动人工智能技术的普及。此次新功能的推出，再次体现了其“让 AI 更易用”的核心理念。对于普通用户而言，判断一台电脑是否能运行某个模型往往需要一定的专业知识，而现在，这一门槛被显著降低。无论是运行 LLaMA、Mistral 等热门大模型，还是尝试<span class=\"spamTxt\">最新</span>的 GGUF 格式模型，用户都可以更轻松地上手。</p><p>此外，这一功能还与 Hugging Face 生态系统的其他工具形成了良好互补。例如，结合平台对 GGUF 模型的支持，用户可以通过 Ollama 等本地运行工具一键部署适合自己设备的模型，进一步提升了开发效率。</p>",
+          "contentSnippet": "人工智能开源社区的领军平台 Hugging Face 推出了一项备受期待的新功能:用户可以通过平台设置，快速查看自己的电脑硬件能够运行哪些机器学习模型。\n据了解，用户只需在 Hugging Face 的个人设置页面（路径为“右上角头像 > Settings > Local Apps and Hardware”）添加自己的硬件信息，例如 GPU 型号、内存容量等，系统便会根据这些参数，智能分析并显示哪些模型(包括不同量化版本)能够在该设备上顺利运行。这一功能的亮点在于其直观性和便捷性，尤其对于开发者、研究人员以及 AI 爱好者来说，极大地简化了模型选择流程。\n\n例如，X 用户 @karminski3 分享了自己的使用体验，他表示在添加了 M2Ultra（128GB 内存）和 Nvidia3080Ti 的硬件信息后，Hugging Face 的模型卡页面直接显示出 M2Ultra 可运行某模型的多种量化版本，而3080Ti 则因性能限制无法运行，结论一目了然。\nHugging Face 作为全球知名的 AI 开源平台，长期致力于通过开放资源和工具，推动人工智能技术的普及。此次新功能的推出，再次体现了其“让 AI 更易用”的核心理念。对于普通用户而言，判断一台电脑是否能运行某个模型往往需要一定的专业知识，而现在，这一门槛被显著降低。无论是运行 LLaMA、Mistral 等热门大模型，还是尝试最新的 GGUF 格式模型，用户都可以更轻松地上手。\n此外，这一功能还与 Hugging Face 生态系统的其他工具形成了良好互补。例如，结合平台对 GGUF 模型的支持，用户可以通过 Ollama 等本地运行工具一键部署适合自己设备的模型，进一步提升了开发效率。",
+          "guid": "https://www.aibase.com/zh/news/16824",
+          "isoDate": "2025-04-03T01:00:24.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "元鼎智能获近10亿融资，携手Fluidra重塑行业格局",
+          "link": "https://www.aibase.com/zh/news/16823",
+          "pubDate": "Thu, 03 Apr 2025 00:59:46 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">近日，元鼎智能完成近10亿人民币战略融资。本轮由泳池巨头Fluidra战略投资，云启资本新加入，老股东增持。</span></p><p>此次融资标志着元鼎智能打通全球泳池专业渠道，迎来战略质变。Fluidra深耕行业超50年，业务遍及47国，旗下品牌在欧美家喻户晓。其全球分销网络等资源，助力元鼎智能从“线上领先”向“全渠道突破”转型。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202304171156355346_0.jpg\" title=\"机器人 人工智能  AI  (1) (图片来源：AI合成)\" alt=\"机器人 人工智能  AI  (1)\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">图源备注:图片由AI生成，图片授权服务商Midjourney</p><p>当前泳池机器人赛道红海竞争，线上内卷，欧美主流KA渠道及泳池专业渠道壁垒高。元鼎智能此前已线上销售<span class=\"spamTxt\">第一</span>，并进入7000多家欧美主流KA门店。</p><p>凭借自主核心技术，元鼎智能4年成为全球销量前二、线上<span class=\"spamTxt\">第一</span>品牌。此次与Fluidra合作，“技术+渠道+效率”组合将重塑竞争生态，加速行业走向规模化、品牌化、全球化。</p><p>元鼎智能创始人汪洋表示，将加大技术、品牌等布局，深耕欧美、拓展新兴市场，构建全球智能庭院生态版图。&nbsp;</p>",
+          "contentSnippet": "近日，元鼎智能完成近10亿人民币战略融资。本轮由泳池巨头Fluidra战略投资，云启资本新加入，老股东增持。\n此次融资标志着元鼎智能打通全球泳池专业渠道，迎来战略质变。Fluidra深耕行业超50年，业务遍及47国，旗下品牌在欧美家喻户晓。其全球分销网络等资源，助力元鼎智能从“线上领先”向“全渠道突破”转型。\n\n图源备注:图片由AI生成，图片授权服务商Midjourney\n当前泳池机器人赛道红海竞争，线上内卷，欧美主流KA渠道及泳池专业渠道壁垒高。元鼎智能此前已线上销售第一，并进入7000多家欧美主流KA门店。\n凭借自主核心技术，元鼎智能4年成为全球销量前二、线上第一品牌。此次与Fluidra合作，“技术+渠道+效率”组合将重塑竞争生态，加速行业走向规模化、品牌化、全球化。\n元鼎智能创始人汪洋表示，将加大技术、品牌等布局，深耕欧美、拓展新兴市场，构建全球智能庭院生态版图。",
+          "guid": "https://www.aibase.com/zh/news/16823",
+          "isoDate": "2025-04-03T00:59:46.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Genspark发布类似Manus的通用AI代理：Genspark Super Agent",
+          "link": "https://www.aibase.com/zh/news/16822",
+          "pubDate": "Thu, 03 Apr 2025 00:44:04 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">2025 年 4 月 2 日，加利福尼亚——人工智能领域的竞争再掀波澜。继中国初创公司Butterfly Effect推出备受瞩目的通用AI代理Manus之后，由前百度高管景鲲创立的美国公司Genspark今日宣布推出其全新产品\"Genspark Super Agent\"，号称是一款\"快速、准确、可控\"的通用AI代理。这一消息迅速在技术社区引发热议，众多专业人士将其与Manus相提并论，认为这标志着通用AI代理技术的新一轮角逐。</span></p><p style=\"text-align: center;\"><span style=\"text-indent: 2em;\"><video class=\"edui-upload-video  vjs-default-skin video-js video-js\" controls=\"\" preload=\"meta\" width=\"750\" height=\"450\" src=\"https://upload.chinaz.com/video/2025/0403/6387926646604433052974796.mp4\" data-setup=\"{}\"><source src=\"https://upload.chinaz.com/video/2025/0403/6387926646604433052974796.mp4\" type=\"video/mp4\"></video></span></p><h2>Genspark Super Agent：功能亮点抢先看</h2><p>根据<span class=\"spamTxt\">最新</span>公开信息，Genspark Super Agent不仅在性能上对标Manus，还引入了一些独特的功能，试图在竞争中脱颖而出。技术博主在评测中指出，Genspark的通用代理内置了一个能够自动拨打电话的AI模块，这一功能对国际用户尤为友好。例如，它可以帮助用户自动预订酒店或餐厅，极大地提升了实用性。另有业内人士透露，这款代理背后有一个强大的\"Mixture-of-Agents\"系统，集成了 8 个不同规模的语言模型（LLMs）、超过 80 种工具集以及海量优质数据集，使其能够应对各种复杂任务。</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387926630283796984145778.png\" title=\"twitter_Genspark(@genspark_ai)_20250402-154911_1907460308362523114_photo.png\" alt=\"twitter_Genspark(@genspark_ai)_20250402-154911_1907460308362523114_photo.png\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387926631402561627753916.jpg\" title=\"twitter_AINOSUKE @AIクリエイター(@ainosuke2021x)_20250402-161052_1907465767358222354_photo (1).jpg\" alt=\"twitter_AINOSUKE @AIクリエイター(@ainosuke2021x)_20250402-161052_1907465767358222354_photo (1).jpg\" referrerpolicy=\"no-referrer\"></p><p>此外，官方发布的演示视频展示了Genspark Super Agent在通话预订场景中的表现。视频中，AI代理不仅能理解用户需求，还能流畅地与服务提供方进行电话沟通，最终完成预订流程。这一功能的亮相让许多人惊叹于其自动化程度，并将其视为超越传统AI助手的重要一步。</p><p style=\"text-align: center;\"><video class=\"edui-upload-video  vjs-default-skin video-js video-js\" controls=\"\" preload=\"meta\" width=\"750\" height=\"450\" src=\"https://upload.chinaz.com/video/2025/0403/6387926640322057947083750.mp4\" data-setup=\"{}\"><source src=\"https://upload.chinaz.com/video/2025/0403/6387926640322057947083750.mp4\" type=\"video/mp4\"></video></p><h2>与Manus的对比：竞争还是互补？</h2><p>自从 2025 年 3 月 6 日Manus发布以来，其作为\"全球<span class=\"spamTxt\">首款</span>完全自主AI代理\"的称号引发了广泛关注。Manus以其多代理架构和独立执行复杂任务的能力著称，例如筛选简历、分析股票趋势以及生成交互式网站。而Genspark Super Agent的发布，似乎有意在这一领域分一杯羹。行业专家分享了Genspark的详细介绍，并将其内容整理成系统性分析，方便更多人了解其功能。</p><p>尽管两者都被归类为通用AI代理，但从目前披露的信息来看，Genspark Super Agent在交互性和实用性上进行了针对性优化。内置的电话功能被认为是其与Manus的主要区别之一。技术评论家指出：\"今日通用代理领域再添新军，Genspark发布了他们类似Manus的通用代理。不同的是他们内置了打电话的AI功能，这对国际用户非常便利。\"这一观点得到了业内专家的认同，许多研究者认为这一功能填补了Manus在实际生活场景中的应用空白。</p><h2>业界反响与未来展望</h2><p>Genspark Super Agent的发布正值AI代理技术迅速发展的关键时期。就在今年早些时候，Manus凭借其在GAIA基准测试中的优异表现超越了OpenAI的Deep Research，引发了关于中国AI技术崛起的热烈讨论。如今，Genspark的入局无疑为这一领域注入了新的活力。一些行业分析师预测，这款新代理可能会在速度和可靠性上进一步挑战现有技术标准。</p><p>然而，也有声音指出，Genspark Super Agent的具体性能仍有待验证。研究人员在技术论坛中提到，其\"Mixture-of-Agents\"系统的细节尚未完全公开，实际应用中的表现是否能兑现宣传中的\"快、准、可控\"仍需时间检验。与此同时，Manus的开发团队也曾表示计划在年内开源部分模型，这或许会为Genspark带来更大的竞争压力。</p><h2>结语</h2><p>随着Genspark Super Agent的亮相，通用AI代理的赛道变得愈发拥挤。从Manus到Genspark，这些技术突破不仅展示了AI从单纯的对话工具向自主执行任务的转变，也预示着未来人与机器协作方式的深刻变革。正如业内讨论所反映的，专业人士和用户都在密切关注这些新兴代理的表现，期待它们能在实际场景中带来更多惊喜。未来几个月，Genspark Super Agent与Manus之间的较量无疑将成为AI领域的一大看点。</p><p>了解更多关于Genspark&nbsp;：<a href=\"https://www.aibase.com/zh/tool/31186\" target=\"_blank\">https://www.aibase.com/zh/tool/31186</a></p>",
+          "contentSnippet": "2025 年 4 月 2 日，加利福尼亚——人工智能领域的竞争再掀波澜。继中国初创公司Butterfly Effect推出备受瞩目的通用AI代理Manus之后，由前百度高管景鲲创立的美国公司Genspark今日宣布推出其全新产品\"Genspark Super Agent\"，号称是一款\"快速、准确、可控\"的通用AI代理。这一消息迅速在技术社区引发热议，众多专业人士将其与Manus相提并论，认为这标志着通用AI代理技术的新一轮角逐。\n\nGenspark Super Agent：功能亮点抢先看\n根据最新公开信息，Genspark Super Agent不仅在性能上对标Manus，还引入了一些独特的功能，试图在竞争中脱颖而出。技术博主在评测中指出，Genspark的通用代理内置了一个能够自动拨打电话的AI模块，这一功能对国际用户尤为友好。例如，它可以帮助用户自动预订酒店或餐厅，极大地提升了实用性。另有业内人士透露，这款代理背后有一个强大的\"Mixture-of-Agents\"系统，集成了 8 个不同规模的语言模型（LLMs）、超过 80 种工具集以及海量优质数据集，使其能够应对各种复杂任务。\n\n\n此外，官方发布的演示视频展示了Genspark Super Agent在通话预订场景中的表现。视频中，AI代理不仅能理解用户需求，还能流畅地与服务提供方进行电话沟通，最终完成预订流程。这一功能的亮相让许多人惊叹于其自动化程度，并将其视为超越传统AI助手的重要一步。\n\n与Manus的对比：竞争还是互补？\n自从 2025 年 3 月 6 日Manus发布以来，其作为\"全球首款完全自主AI代理\"的称号引发了广泛关注。Manus以其多代理架构和独立执行复杂任务的能力著称，例如筛选简历、分析股票趋势以及生成交互式网站。而Genspark Super Agent的发布，似乎有意在这一领域分一杯羹。行业专家分享了Genspark的详细介绍，并将其内容整理成系统性分析，方便更多人了解其功能。\n尽管两者都被归类为通用AI代理，但从目前披露的信息来看，Genspark Super Agent在交互性和实用性上进行了针对性优化。内置的电话功能被认为是其与Manus的主要区别之一。技术评论家指出：\"今日通用代理领域再添新军，Genspark发布了他们类似Manus的通用代理。不同的是他们内置了打电话的AI功能，这对国际用户非常便利。\"这一观点得到了业内专家的认同，许多研究者认为这一功能填补了Manus在实际生活场景中的应用空白。\n业界反响与未来展望\nGenspark Super Agent的发布正值AI代理技术迅速发展的关键时期。就在今年早些时候，Manus凭借其在GAIA基准测试中的优异表现超越了OpenAI的Deep Research，引发了关于中国AI技术崛起的热烈讨论。如今，Genspark的入局无疑为这一领域注入了新的活力。一些行业分析师预测，这款新代理可能会在速度和可靠性上进一步挑战现有技术标准。\n然而，也有声音指出，Genspark Super Agent的具体性能仍有待验证。研究人员在技术论坛中提到，其\"Mixture-of-Agents\"系统的细节尚未完全公开，实际应用中的表现是否能兑现宣传中的\"快、准、可控\"仍需时间检验。与此同时，Manus的开发团队也曾表示计划在年内开源部分模型，这或许会为Genspark带来更大的竞争压力。\n结语\n随着Genspark Super Agent的亮相，通用AI代理的赛道变得愈发拥挤。从Manus到Genspark，这些技术突破不仅展示了AI从单纯的对话工具向自主执行任务的转变，也预示着未来人与机器协作方式的深刻变革。正如业内讨论所反映的，专业人士和用户都在密切关注这些新兴代理的表现，期待它们能在实际场景中带来更多惊喜。未来几个月，Genspark Super Agent与Manus之间的较量无疑将成为AI领域的一大看点。\n了解更多关于Genspark ：https://www.aibase.com/zh/tool/31186",
+          "guid": "https://www.aibase.com/zh/news/16822",
+          "isoDate": "2025-04-03T00:44:04.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "字节跳动在Hugging Face发布MegaTTS3：轻量化语音合成新突破",
+          "link": "https://www.aibase.com/zh/news/16821",
+          "pubDate": "Thu, 03 Apr 2025 00:23:40 GMT",
+          "author": "AI Base",
+          "content": "<p>北京——字节跳动（ByteDance）近日在人工智能开源社区Hugging Face上正式发布了其<span class=\"spamTxt\">最新</span>的文本转语音（TTS）模型MegaTTS3。这一发布迅速引起了全球AI研究者和开发者的关注，因其在轻量化设计和多语言支持方面的突破性表现。根据技术社区反馈和官方信息，MegaTTS3 被誉为语音合成领域的一次重要进步。</p><p style=\"text-align: center;\"><video class=\"edui-upload-video  vjs-default-skin  video-js video-js\" controls=\"\" preload=\"meta\" width=\"750\" height=\"450\" src=\"https://upload.chinaz.com/video/2025/0403/6387926529267674502432386.mp4\" data-setup=\"{}\"><source src=\"https://upload.chinaz.com/video/2025/0403/6387926529267674502432386.mp4\" type=\"video/mp4\"></video></p><h2>MegaTTS3 的核心亮点</h2><p>MegaTTS3 是一款由字节跳动与浙江大学合作开发的开源语音合成工具，其主干模型仅包含0. 45 亿个参数，相较于传统大型TTS模型显得异常轻量。这一设计不仅降低了计算资源需求，还使其更适合在资源受限的设备上部署，例如移动设备或边缘计算场景。</p><p>该模型支持中文和英文语音生成，并具备独特的中英混合朗读能力，能够自然流畅地处理双语文本。此外，MegaTTS3 还引入了口音强度控制功能，用户可以通过调整参数生成带有不同程度口音的语音，为个性化语音应用提供了更多可能性。技术专家在评论中特别指出：\"支持口音强度控制，这一点非常亮眼。\"</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0403/6387926533465272068153464.png\" title=\"QQ_1743639712501.png\" alt=\"QQ_1743639712501.png\" referrerpolicy=\"no-referrer\"></p><h2>开源社区的热烈反响</h2><p>MegaTTS3 的代码和预训练模型已通过GitHub和Hugging Face平台免费开放，用户可直接下载并用于研究或开发。根据Hugging Face上的项目页面，MegaTTS3 的目标是通过开源和开放科学推动人工智能的进步与普及。这一举措延续了字节跳动在AI领域的开源传统，此前其发布的AnimateDiff-Lightning和Hyper-SD等模型也深受社区欢迎。</p><p>技术社区中，开发者们对MegaTTS3 的轻量化和实用性表达了高度认可。一位<span class=\"spamTxt\">资深</span>工程师在评论中指出：\"0. 45 亿参数就能实现这样的效果，太适合小型团队和独立开发者了。\"多位技术人员表示，计划将其集成到教育辅助工具中，用于生成双语有声读物。</p><h2>技术细节与未来展望</h2><p>MegaTTS3 的高效性得益于其创新的模型架构，尽管具体细节尚未完全公开，但官方文档提到，该模型在生成高质量语音的同时，还支持语音克隆功能——只需几秒钟的音频样本即可模仿特定音色。未来，字节跳动计划为MegaTTS3 添加发音和时长控制功能，进一步提升其灵活性和应用场景。</p><p>与此同时，该模型的硬件需求也相对宽松。虽然使用GPU可以显著提升生成速度，但官方表示CPU环境下也能运行，这无疑降低了使用门槛。然而，部分用户在技术论坛上反馈，在安装过程中可能因网络问题或依赖库版本不匹配而遇到困难，建议开发者参考GitHub上的issue页面寻求解决方案。</p><h2>应用前景与行业影响</h2><p>MegaTTS3 的发布为多个领域带来了新的可能性。在学术研究中，它可用于测试语音合成技术的极限；在内容创作中，可为视频配音或播客生成低成本、高质量的旁白；在教育领域，其双语支持和语音克隆功能可助力开发更具互动性的学习工具。此外，开发者还可以将其嵌入智能设备，实现中英文语音交互。</p><p>业内人士认为，MegaTTS3 的开源性质将加速中小型企业和个人开发者在语音技术上的创新步伐。正如字节跳动在Hugging Face的使命宣言中所说：\"我们致力于通过开源和开放科学推进人工智能的民主化。\"这一轻量化、高性能的TTS模型无疑是这一愿景的又一体现。</p><h2>结语</h2><p>随着MegaTTS3 在Hugging Face上的发布，字节跳动再次证明了其在AI技术研发和开源共享方面的领先地位。从技术社区的热烈讨论到开发者的实际应用，这款模型正在为语音合成领域注入新的活力。未来，随着社区的参与和功能的完善，MegaTTS3 有望成为TTS技术发展的重要里程碑。</p><p>想要体验MegaTTS3 的开发者可访问Hugging Face上的项目页面（链接：https://huggingface.co/ByteDance/MegaTTS3）或GitHub仓库，获取代码和模型文件。这一新工具的到来，或许将为我们的语音交互方式带来一场悄然的变革。</p><p><br></p>",
+          "contentSnippet": "北京——字节跳动（ByteDance）近日在人工智能开源社区Hugging Face上正式发布了其最新的文本转语音（TTS）模型MegaTTS3。这一发布迅速引起了全球AI研究者和开发者的关注，因其在轻量化设计和多语言支持方面的突破性表现。根据技术社区反馈和官方信息，MegaTTS3 被誉为语音合成领域的一次重要进步。\n\nMegaTTS3 的核心亮点\nMegaTTS3 是一款由字节跳动与浙江大学合作开发的开源语音合成工具，其主干模型仅包含0. 45 亿个参数，相较于传统大型TTS模型显得异常轻量。这一设计不仅降低了计算资源需求，还使其更适合在资源受限的设备上部署，例如移动设备或边缘计算场景。\n该模型支持中文和英文语音生成，并具备独特的中英混合朗读能力，能够自然流畅地处理双语文本。此外，MegaTTS3 还引入了口音强度控制功能，用户可以通过调整参数生成带有不同程度口音的语音，为个性化语音应用提供了更多可能性。技术专家在评论中特别指出：\"支持口音强度控制，这一点非常亮眼。\"\n\n开源社区的热烈反响\nMegaTTS3 的代码和预训练模型已通过GitHub和Hugging Face平台免费开放，用户可直接下载并用于研究或开发。根据Hugging Face上的项目页面，MegaTTS3 的目标是通过开源和开放科学推动人工智能的进步与普及。这一举措延续了字节跳动在AI领域的开源传统，此前其发布的AnimateDiff-Lightning和Hyper-SD等模型也深受社区欢迎。\n技术社区中，开发者们对MegaTTS3 的轻量化和实用性表达了高度认可。一位资深工程师在评论中指出：\"0. 45 亿参数就能实现这样的效果，太适合小型团队和独立开发者了。\"多位技术人员表示，计划将其集成到教育辅助工具中，用于生成双语有声读物。\n技术细节与未来展望\nMegaTTS3 的高效性得益于其创新的模型架构，尽管具体细节尚未完全公开，但官方文档提到，该模型在生成高质量语音的同时，还支持语音克隆功能——只需几秒钟的音频样本即可模仿特定音色。未来，字节跳动计划为MegaTTS3 添加发音和时长控制功能，进一步提升其灵活性和应用场景。\n与此同时，该模型的硬件需求也相对宽松。虽然使用GPU可以显著提升生成速度，但官方表示CPU环境下也能运行，这无疑降低了使用门槛。然而，部分用户在技术论坛上反馈，在安装过程中可能因网络问题或依赖库版本不匹配而遇到困难，建议开发者参考GitHub上的issue页面寻求解决方案。\n应用前景与行业影响\nMegaTTS3 的发布为多个领域带来了新的可能性。在学术研究中，它可用于测试语音合成技术的极限；在内容创作中，可为视频配音或播客生成低成本、高质量的旁白；在教育领域，其双语支持和语音克隆功能可助力开发更具互动性的学习工具。此外，开发者还可以将其嵌入智能设备，实现中英文语音交互。\n业内人士认为，MegaTTS3 的开源性质将加速中小型企业和个人开发者在语音技术上的创新步伐。正如字节跳动在Hugging Face的使命宣言中所说：\"我们致力于通过开源和开放科学推进人工智能的民主化。\"这一轻量化、高性能的TTS模型无疑是这一愿景的又一体现。\n结语\n随着MegaTTS3 在Hugging Face上的发布，字节跳动再次证明了其在AI技术研发和开源共享方面的领先地位。从技术社区的热烈讨论到开发者的实际应用，这款模型正在为语音合成领域注入新的活力。未来，随着社区的参与和功能的完善，MegaTTS3 有望成为TTS技术发展的重要里程碑。\n想要体验MegaTTS3 的开发者可访问Hugging Face上的项目页面（链接：https://huggingface.co/ByteDance/MegaTTS3）或GitHub仓库，获取代码和模型文件。这一新工具的到来，或许将为我们的语音交互方式带来一场悄然的变革。",
+          "guid": "https://www.aibase.com/zh/news/16821",
+          "isoDate": "2025-04-03T00:23:40.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "武汉体育中考首次引入 AI 智能系统，近 10 万名学生受益",
+          "link": "https://www.aibase.com/zh/news/16820",
+          "pubDate": "Wed, 02 Apr 2025 13:12:27 GMT",
+          "author": "AI Base",
+          "content": "<p>4月1日至18日，武汉市约10万名初三学生参加了他们的体育中考。这次考试引入了全新的 AI 智能判定系统，标志着体育考试评判的一个重大转变。传统上，体育考试常常依赖于人工计时和评分，而今年的考试则采用了智能设备和云端管理的模式，确保了考试的公正与高效。</p><p>据了解，今年的体育中考采用了人脸识别、电子测距和无线传感等多项 AI 技术，涵盖了三类共14个项目。这些项目包括长跑、跳绳、足球绕杆和篮球运球等，几乎实现了零人工干预的考试过程。考生在每一个环节都需要刷脸完成身份验证，系统会自动采集每个学生的考试数据。</p><p>在考试现场，裁判员不再手动计时或记录分数，所有数据均通过 AI 设备实时采集。这种新方式的应用，不仅大大提高了判定的准确性，还将误差率控制在了0.5% 以内。此外，所有的数据都会进行即时加密存档，以确保成绩的公开透明。</p><p>此次引入 AI 系统的改革得到了考务技术顾问的积极评价。他表示，利用 AI 技术，能够让体育考试变得更加科学和高效，同时也能减轻考务工作人员的负担。AI 技术的应用，让考试过程更具公信力，避免了以往可能存在的人为误差。</p><p><br></p><blockquote><p>划重点:</p><p>🏅 武汉体育中考引入 AI 智能判定系统，覆盖近10万名学生。&nbsp;&nbsp;</p><p>🤖 采用人脸识别和无线传感技术，实现零人工干预的考试过程。&nbsp;&nbsp;</p><p>🔒 数据实时加密存档，确保成绩的公开透明和准确性。</p></blockquote>",
+          "contentSnippet": "4月1日至18日，武汉市约10万名初三学生参加了他们的体育中考。这次考试引入了全新的 AI 智能判定系统，标志着体育考试评判的一个重大转变。传统上，体育考试常常依赖于人工计时和评分，而今年的考试则采用了智能设备和云端管理的模式，确保了考试的公正与高效。\n据了解，今年的体育中考采用了人脸识别、电子测距和无线传感等多项 AI 技术，涵盖了三类共14个项目。这些项目包括长跑、跳绳、足球绕杆和篮球运球等，几乎实现了零人工干预的考试过程。考生在每一个环节都需要刷脸完成身份验证，系统会自动采集每个学生的考试数据。\n在考试现场，裁判员不再手动计时或记录分数，所有数据均通过 AI 设备实时采集。这种新方式的应用，不仅大大提高了判定的准确性，还将误差率控制在了0.5% 以内。此外，所有的数据都会进行即时加密存档，以确保成绩的公开透明。\n此次引入 AI 系统的改革得到了考务技术顾问的积极评价。他表示，利用 AI 技术，能够让体育考试变得更加科学和高效，同时也能减轻考务工作人员的负担。AI 技术的应用，让考试过程更具公信力，避免了以往可能存在的人为误差。\n\n\n划重点:\n🏅 武汉体育中考引入 AI 智能判定系统，覆盖近10万名学生。  \n🤖 采用人脸识别和无线传感技术，实现零人工干预的考试过程。  \n🔒 数据实时加密存档，确保成绩的公开透明和准确性。",
+          "guid": "https://www.aibase.com/zh/news/16820",
+          "isoDate": "2025-04-02T13:12:27.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Reply扩大创意实验，推出AI音乐大赛与重返AI电影节",
+          "link": "https://www.aibase.com/zh/news/16818",
+          "pubDate": "Wed, 02 Apr 2025 09:25:16 GMT",
+          "author": "AI Base",
+          "content": "<p>意大利都灵消息 ——Reply 公司近日宣布，出于对创新文化的追求以及对年轻一代使用新技术的热情，他们将启动一项全新的 AI 音乐大赛，并且迎回第二届 AI 电影节。这两个国际赛事旨在为创意人才提供展示自己才能的舞台，并通过人工智能来推动艺术创作的新边界。</p><p>首先，Reply 与欧洲<span class=\"spamTxt\">著名</span>电子音乐节 Kappa FuturFestival 联手推出的 AI 音乐大赛，邀请年轻艺术家们在音乐中融入 AI 技术。比赛的主题为 “体验节拍”，鼓励参赛者创造五分钟的沉浸式音乐表演，结合音乐、视觉艺术和观众互动。评审团由 DJ、AI 艺术家以及 Reply 的技术专家组成，将根据创意、音效与视觉的整合以及现场表现的潜力进行评分。最终入围的音乐选手将于2025年7月4日至6日在都灵的音乐节上进行现场表演，展示他们的创作。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202405231159164348_3.jpg\" title=\"机器人 电脑  办公 人工智能 (图片来源：AI合成)\" alt=\"机器人 电脑  办公 人工智能\" referrerpolicy=\"no-referrer\"></p><p style=\"text-align: center;\">图源备注：图片由AI生成，图片授权服务商Midjourney</p><p>同时，Reply 还宣布了第二届 AI 电影节的回归，专为对短片创作感兴趣的导演和视频制作者设立。参赛者可以在制作的各个环节运用 AI 技术，从剧本创作、分镜到影像和音效的制作，尽情发挥他们的想象力。今年的主题为 “情感的生成”，旨在鼓励创作者用 AI 传递真挚的情感。优秀作品将参加9月在威尼斯举行的首映活动，并有机会争夺三项大奖。</p><p>值得一提的是，此次电影节新增了两个特别奖项。“雷克萨斯先锋奖” 将表彰在技术、设计和前瞻性方面最具创新性的作品，而 “为善而创奖” 则是与国际电信联盟联合设立，专门颁发给最能突显联合国可持续发展目标的短片。</p><p>Reply 的首席技术官 Filippo Rizzante 表示，这些活动不仅是为了推动年轻一代对新技术的了解，也是为了展示人类创造力与人工智能之间的协同效应，打开一个更具包容性的创意空间。感兴趣的创意人才可通过专属平台提交作品，截止日期为2025年6月1日。</p>",
+          "contentSnippet": "意大利都灵消息 ——Reply 公司近日宣布，出于对创新文化的追求以及对年轻一代使用新技术的热情，他们将启动一项全新的 AI 音乐大赛，并且迎回第二届 AI 电影节。这两个国际赛事旨在为创意人才提供展示自己才能的舞台，并通过人工智能来推动艺术创作的新边界。\n首先，Reply 与欧洲著名电子音乐节 Kappa FuturFestival 联手推出的 AI 音乐大赛，邀请年轻艺术家们在音乐中融入 AI 技术。比赛的主题为 “体验节拍”，鼓励参赛者创造五分钟的沉浸式音乐表演，结合音乐、视觉艺术和观众互动。评审团由 DJ、AI 艺术家以及 Reply 的技术专家组成，将根据创意、音效与视觉的整合以及现场表现的潜力进行评分。最终入围的音乐选手将于2025年7月4日至6日在都灵的音乐节上进行现场表演，展示他们的创作。\n\n图源备注：图片由AI生成，图片授权服务商Midjourney\n同时，Reply 还宣布了第二届 AI 电影节的回归，专为对短片创作感兴趣的导演和视频制作者设立。参赛者可以在制作的各个环节运用 AI 技术，从剧本创作、分镜到影像和音效的制作，尽情发挥他们的想象力。今年的主题为 “情感的生成”，旨在鼓励创作者用 AI 传递真挚的情感。优秀作品将参加9月在威尼斯举行的首映活动，并有机会争夺三项大奖。\n值得一提的是，此次电影节新增了两个特别奖项。“雷克萨斯先锋奖” 将表彰在技术、设计和前瞻性方面最具创新性的作品，而 “为善而创奖” 则是与国际电信联盟联合设立，专门颁发给最能突显联合国可持续发展目标的短片。\nReply 的首席技术官 Filippo Rizzante 表示，这些活动不仅是为了推动年轻一代对新技术的了解，也是为了展示人类创造力与人工智能之间的协同效应，打开一个更具包容性的创意空间。感兴趣的创意人才可通过专属平台提交作品，截止日期为2025年6月1日。",
+          "guid": "https://www.aibase.com/zh/news/16818",
+          "isoDate": "2025-04-02T09:25:16.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "宝马引入 Figure02人形机器人，生产效率大幅提升",
+          "link": "https://www.aibase.com/zh/news/16817",
+          "pubDate": "Wed, 02 Apr 2025 09:20:07 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">在科技迅猛发展的今天，人工智能与机器人技术正在深刻改变传统制造业的面貌。德国<span class=\"spamTxt\">著名</span>汽车制造商宝马近日与美国人工智能机器人公司 Figure 达成合作，成功引入 Figure02 人形机器人至其生产线，展现出惊人的生产效率提升。</span></p><p>Figure02 人形机器人以其卓越的操作能力在行业内引起广泛关注。这款机器人每日可完成高达 1000 次的精确操作，速度提升达 400%，成功率更是提升了七倍。这一显著的进步标志着宝马在提升生产效率方面迈出了重要一步，尤其是在处理复杂和难以操作的金属部件时，Figure02 能够有效避免与固定件的碰撞，从而极大提高生产流程的安全性与流畅性。</p><p>根据 Figure 公司的创始人兼首席执行官布雷德・阿德科克的介绍，Figure02 在高精度任务中表现尤为突出，能够将不易操作的金属片准确放入小于 1 厘米宽的插槽，展现出其卓越的精确度和可靠性。此外，Figure02 在复杂操作的循环时间上也有了显著缩短，完成这一任务的时间减少了四分钟，进一步证明了其在高难度操作中的优越性能。</p><p>宝马与 Figure 的合作始于今年初，并在位于斯巴顿堡的工厂进行了成功测试。这是宝马<span class=\"spamTxt\">首次</span>在生产线上应用人形机器人。尽管宝马尚未确定全面引入机器人的具体时间表，但<span class=\"spamTxt\">最新</span>消息显示，Figure 人形机器人预计将在 2025 年 1 月重返宝马工厂。</p><p>此外，Figure AI 最近完成了 675 百万美元的 B 轮融资，投资者包括 OpenAI、英伟达、微软和杰夫・贝索斯，使得 Figure 的估值达到了 26 亿美元。阿德科克也指出，Figure02 的速度仍有进一步提升的空间，预计在 2025 年前将有更多的人形机器人被部署到实际环境中，为制造业的创新发展注入新动力。</p><p>产品信息：</p><table><thead><tr class=\"firstRow\"><th>名称</th><th>参数</th></tr></thead><tbody><tr><td>产品名称</td><td>Figure02 人形机器人</td></tr><tr><td>产品简介</td><td>高效人形机器人，提升生产效率。</td></tr><tr><td>产品价格</td><td>待定</td></tr><tr><td>上市时间</td><td>预计 2025 年 1 月</td></tr><tr><td>产品产地</td><td>美国</td></tr><tr><td>产品分类</td><td>人形机器人</td></tr><tr><td>产品介绍</td><td>Figure02 是由美国 Figure 公司研发的人形机器人，具备高精度和高效率的操作能力。在宝马生产线应用中，速度提升达到 400%，成功率提升七倍，能够在复杂环境下执行多达 1000 次操作。</td></tr></tbody></table>",
+          "contentSnippet": "在科技迅猛发展的今天，人工智能与机器人技术正在深刻改变传统制造业的面貌。德国著名汽车制造商宝马近日与美国人工智能机器人公司 Figure 达成合作，成功引入 Figure02 人形机器人至其生产线，展现出惊人的生产效率提升。\nFigure02 人形机器人以其卓越的操作能力在行业内引起广泛关注。这款机器人每日可完成高达 1000 次的精确操作，速度提升达 400%，成功率更是提升了七倍。这一显著的进步标志着宝马在提升生产效率方面迈出了重要一步，尤其是在处理复杂和难以操作的金属部件时，Figure02 能够有效避免与固定件的碰撞，从而极大提高生产流程的安全性与流畅性。\n根据 Figure 公司的创始人兼首席执行官布雷德・阿德科克的介绍，Figure02 在高精度任务中表现尤为突出，能够将不易操作的金属片准确放入小于 1 厘米宽的插槽，展现出其卓越的精确度和可靠性。此外，Figure02 在复杂操作的循环时间上也有了显著缩短，完成这一任务的时间减少了四分钟，进一步证明了其在高难度操作中的优越性能。\n宝马与 Figure 的合作始于今年初，并在位于斯巴顿堡的工厂进行了成功测试。这是宝马首次在生产线上应用人形机器人。尽管宝马尚未确定全面引入机器人的具体时间表，但最新消息显示，Figure 人形机器人预计将在 2025 年 1 月重返宝马工厂。\n此外，Figure AI 最近完成了 675 百万美元的 B 轮融资，投资者包括 OpenAI、英伟达、微软和杰夫・贝索斯，使得 Figure 的估值达到了 26 亿美元。阿德科克也指出，Figure02 的速度仍有进一步提升的空间，预计在 2025 年前将有更多的人形机器人被部署到实际环境中，为制造业的创新发展注入新动力。\n产品信息：\n\n名称参数\n\n产品名称Figure02 人形机器人\n产品简介高效人形机器人，提升生产效率。\n产品价格待定\n上市时间预计 2025 年 1 月\n产品产地美国\n产品分类人形机器人\n产品介绍Figure02 是由美国 Figure 公司研发的人形机器人，具备高精度和高效率的操作能力。在宝马生产线应用中，速度提升达到 400%，成功率提升七倍，能够在复杂环境下执行多达 1000 次操作。",
+          "guid": "https://www.aibase.com/zh/news/16817",
+          "isoDate": "2025-04-02T09:20:07.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "ChatGPT iOS上线新语音“Shade”，又丧又EMO的状态",
+          "link": "https://www.aibase.com/zh/news/16816",
+          "pubDate": "Wed, 02 Apr 2025 09:03:18 GMT",
+          "author": "AI Base",
+          "content": "<p>2025年4月2日，根据社交媒体Twitter上用户<span class=\"spamTxt\">最新</span>反馈，OpenAI旗下的ChatGPT在iOS应用中推出了全新语音选项“Shade”，目前<span style=\"text-indent: 2em;\">已开始在iOS应用上逐步推送，并已经对部分用户开放使用。</span></p><p><span style=\"text-indent: 2em;\"></span></p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0402/6387921018649102104165722.png\" title=\"QQ_1743584577877.png\" alt=\"QQ_1743584577877.png\" referrerpolicy=\"no-referrer\"></p><p><span style=\"text-indent: 2em;\"></span><br></p><p>虽然目前关于“Shade”语音的具体细节尚未完全披露，但从用户的初步反馈来看，这一新语音被设计得更具个性，表现出了又丧又EMO的状态，可能融入了更自然的语调和情感表达，以贴近真实的人声对话。</p><p><video id=\"tmpVedio0\" class=\"edui-upload-video video-js vjs-default-skin video-js\" controls=\"\" preload=\"meta\" width=\"750\" height=\"450\" src=\"https://upload.chinaz.com/video/2025/0402/6387921015772421863079806.mp4\" data-setup=\"{}\"><source src=\"https://upload.chinaz.com/video/2025/0402/6387921015772421863079806.mp4\" type=\"video/mp4\"></video></p><p>有分析人士指出，“Shade”语音的上线不仅是技术层面的突破，也反映了OpenAI对用户体验的持续重视。相较于此前的语音选项，“Shade”可能在语速、语气以及场景适应性上进行了优化。</p><p><span style=\"text-indent: 2em;\">不少用户表达了对“Shade”语音的期待。一部分人表示希望尽快在自己的设备上体验这一功能，而另一些人则猜测“Shade”可能带有独特的风格，甚至可能是对特定文化或情感状态的呼应（例如“Talk to Monday”暗示的周一疲惫感）。不过，由于目前信息有限，具体效果仍需等待更多用户的实际反馈。</span></p><p>目前，“Shade”语音的推出仅确认在iOS应用中生效，尚不清楚是否会很快扩展到Android或桌面端用户。OpenAI此前在功能更新上通常采取分阶段推送策略，因此其他平台的用户可能需要稍作等待。</p>",
+          "contentSnippet": "2025年4月2日，根据社交媒体Twitter上用户最新反馈，OpenAI旗下的ChatGPT在iOS应用中推出了全新语音选项“Shade”，目前已开始在iOS应用上逐步推送，并已经对部分用户开放使用。\n\n\n\n\n虽然目前关于“Shade”语音的具体细节尚未完全披露，但从用户的初步反馈来看，这一新语音被设计得更具个性，表现出了又丧又EMO的状态，可能融入了更自然的语调和情感表达，以贴近真实的人声对话。\n\n有分析人士指出，“Shade”语音的上线不仅是技术层面的突破，也反映了OpenAI对用户体验的持续重视。相较于此前的语音选项，“Shade”可能在语速、语气以及场景适应性上进行了优化。\n不少用户表达了对“Shade”语音的期待。一部分人表示希望尽快在自己的设备上体验这一功能，而另一些人则猜测“Shade”可能带有独特的风格，甚至可能是对特定文化或情感状态的呼应（例如“Talk to Monday”暗示的周一疲惫感）。不过，由于目前信息有限，具体效果仍需等待更多用户的实际反馈。\n目前，“Shade”语音的推出仅确认在iOS应用中生效，尚不清楚是否会很快扩展到Android或桌面端用户。OpenAI此前在功能更新上通常采取分阶段推送策略，因此其他平台的用户可能需要稍作等待。",
+          "guid": "https://www.aibase.com/zh/news/16816",
+          "isoDate": "2025-04-02T09:03:18.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "高通收购VinAI的生成AI部门，拓展生成式人工智能能力",
+          "link": "https://www.aibase.com/zh/news/16815",
+          "pubDate": "Wed, 02 Apr 2025 07:56:19 GMT",
+          "author": "AI Base",
+          "content": "<p>美国芯片制造商高通（Qualcomm）近日宣布，已成功收购越南公司 VinAI 的生成 AI 部门 MovianAI。这次收购不仅是高通在人工智能(AI)领域的重要布局，也标志着其与越南技术生态系统之间更加紧密的合作关系。VinAI 在生成 AI、机器学习、计算机视觉和自然语言处理等领域拥有卓越的研究和开发(R&amp;D)能力，成为高通进一步推动 AI 创新的强大助力。</p><p>高通公司表示，此次收购将结合 VinAI 的先进技术与其自身在研发领域的二十多年经验，旨在驱动一系列卓越的科技创新。高通<span class=\"spamTxt\">高级</span>副总裁侯吉磊（Jilei Hou）表示:“这次收购彰显了我们在研发上持续投入的决心，旨在成为下一波 AI 创新的动力源泉。” 他还提到，通过引进 VinAI 的高素质人才，高通将更有效地推出能够惠及各行业和消费者的<span class=\"spamTxt\">尖端</span> AI 解决方案。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202207141545206062_0.jpg\" title=\"高通 高通骁龙 (图片版权所属：站长之家)\" alt=\"高通 高通骁龙\" referrerpolicy=\"no-referrer\"></p><p>VinAI 的生成 AI 团队由前谷歌深度学习团队（Google DeepMind）成员、VinAI 创始人兼首席执行官黄辉博士(Dr. Hung Bui)领导。这支团队在 AI 领域具有丰富的专业知识，能够推动<span class=\"spamTxt\">尖端</span>研究并开发定制化的 AI 模型。黄博士表示:“我们准备好为高通的使命做出贡献，通过基础 AI 研究的突破，推动这一技术在智能手机、个人电脑、软件定义汽车等多个行业的应用。”</p><p>高通与越南科技行业的密切合作已超过20年。通过其在5G、AI、物联网（IoT）和汽车领域的创新，高通不仅促进了越南信息与通信技术(ICT)产业的飞速发展，也帮助当地公司迈向全球市场。随着这次收购的完成，高通无疑将进一步加速其在全球 AI 技术领域的影响力。</p>",
+          "contentSnippet": "美国芯片制造商高通（Qualcomm）近日宣布，已成功收购越南公司 VinAI 的生成 AI 部门 MovianAI。这次收购不仅是高通在人工智能(AI)领域的重要布局，也标志着其与越南技术生态系统之间更加紧密的合作关系。VinAI 在生成 AI、机器学习、计算机视觉和自然语言处理等领域拥有卓越的研究和开发(R&D)能力，成为高通进一步推动 AI 创新的强大助力。\n高通公司表示，此次收购将结合 VinAI 的先进技术与其自身在研发领域的二十多年经验，旨在驱动一系列卓越的科技创新。高通高级副总裁侯吉磊（Jilei Hou）表示:“这次收购彰显了我们在研发上持续投入的决心，旨在成为下一波 AI 创新的动力源泉。” 他还提到，通过引进 VinAI 的高素质人才，高通将更有效地推出能够惠及各行业和消费者的尖端 AI 解决方案。\n\nVinAI 的生成 AI 团队由前谷歌深度学习团队（Google DeepMind）成员、VinAI 创始人兼首席执行官黄辉博士(Dr. Hung Bui)领导。这支团队在 AI 领域具有丰富的专业知识，能够推动尖端研究并开发定制化的 AI 模型。黄博士表示:“我们准备好为高通的使命做出贡献，通过基础 AI 研究的突破，推动这一技术在智能手机、个人电脑、软件定义汽车等多个行业的应用。”\n高通与越南科技行业的密切合作已超过20年。通过其在5G、AI、物联网（IoT）和汽车领域的创新，高通不仅促进了越南信息与通信技术(ICT)产业的飞速发展，也帮助当地公司迈向全球市场。随着这次收购的完成，高通无疑将进一步加速其在全球 AI 技术领域的影响力。",
+          "guid": "https://www.aibase.com/zh/news/16815",
+          "isoDate": "2025-04-02T07:56:19.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "​阿里通义千问 Qwen2.5-Omni 登顶全球开源模型榜单",
+          "link": "https://www.aibase.com/zh/news/16813",
+          "pubDate": "Wed, 02 Apr 2025 07:11:05 GMT",
+          "author": "AI Base",
+          "content": "<p>全球<span class=\"spamTxt\">最大</span>的 AI 开源社区 Hugging Face 发布了<span class=\"spamTxt\">最新</span>的大模型榜单，阿里巴巴的通义千问所推出的端到端全模态大模型 Qwen2.5-Omni 成功登顶，成为全球开源模型中的领军者。</p><p>此次排名中，Qwen2.5-Omni 凭借其强大的性能和多模态能力，战胜了其他众多优秀的模型，位列榜首。紧随其后的是 DeepSeek-V3-0324和群核的 SpatialLM-Llama-1B，这两个模型在功能和应用上也颇具实力，为 AI 开发者提供了更多选择。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920344828401835006061.png\" title=\"QQ_1743577838391.png\" alt=\"QQ_1743577838391.png\" referrerpolicy=\"no-referrer\"></p><p>据悉，阿里通义千问自成立以来，已经向全球开源了超过200款模型。这些模型覆盖了自然语言处理、计算机视觉等多个领域，为科研和企业应用提供了强有力的支持。而 Qwen 系列的衍生模型数量已经突破10万，超越了美国的 Llama 系列，成为全球<span class=\"spamTxt\">最大</span>的开源模型族群。这一成就不仅展示了阿里在技术研发上的实力，也凸显了其对开源生态的积极贡献。</p><p>在当前快速发展的 AI 领域，开源模型的数量和质量对于推动技术进步具有重要意义。阿里通义千问的成功，不仅为企业和开发者提供了丰富的资源，也为 AI 技术的普及和应用创造了条件。随着越来越多的用户和开发者加入开源社区，未来的 AI 技术将更加开放和合作。</p>",
+          "contentSnippet": "全球最大的 AI 开源社区 Hugging Face 发布了最新的大模型榜单，阿里巴巴的通义千问所推出的端到端全模态大模型 Qwen2.5-Omni 成功登顶，成为全球开源模型中的领军者。\n此次排名中，Qwen2.5-Omni 凭借其强大的性能和多模态能力，战胜了其他众多优秀的模型，位列榜首。紧随其后的是 DeepSeek-V3-0324和群核的 SpatialLM-Llama-1B，这两个模型在功能和应用上也颇具实力，为 AI 开发者提供了更多选择。\n\n据悉，阿里通义千问自成立以来，已经向全球开源了超过200款模型。这些模型覆盖了自然语言处理、计算机视觉等多个领域，为科研和企业应用提供了强有力的支持。而 Qwen 系列的衍生模型数量已经突破10万，超越了美国的 Llama 系列，成为全球最大的开源模型族群。这一成就不仅展示了阿里在技术研发上的实力，也凸显了其对开源生态的积极贡献。\n在当前快速发展的 AI 领域，开源模型的数量和质量对于推动技术进步具有重要意义。阿里通义千问的成功，不仅为企业和开发者提供了丰富的资源，也为 AI 技术的普及和应用创造了条件。随着越来越多的用户和开发者加入开源社区，未来的 AI 技术将更加开放和合作。",
+          "guid": "https://www.aibase.com/zh/news/16813",
+          "isoDate": "2025-04-02T07:11:05.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "还在为处理多图发愁？腾讯元宝更新，多图上传+智能处理一键搞定",
+          "link": "https://www.aibase.com/zh/news/16812",
+          "pubDate": "Wed, 02 Apr 2025 07:08:13 GMT",
+          "author": "AI Base",
+          "content": "<p>腾讯元宝迎来重大升级，此次更新后，其识图功能进一步拓展，<span class=\"spamTxt\">最大</span>的亮点在于支持一次性上传10张图片，无论是混元还是DeepSeek模型，都能连贯识图、串连理解并集中回答问题。这一功能结合了混元的多模态理解能力，是元宝双模型能力的有力体现。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920325048182475036860.png\" title=\"QQ20250402-150626.png\" alt=\"QQ20250402-150626.png\" referrerpolicy=\"no-referrer\"></p><p>在实际应用场景中，该功能实用性<span class=\"spamTxt\">极高</span>。比如在处理电子书截图时，用户可让元宝提炼金句并撰写感想;面对朋友圈九图，能快速生成自然的文案;对于板书或讲义照片，能迅速整理出结构;甚至一整套草图，也有希望借助元宝转成demo网页。只要一次性上传图片并提出需求，后续工作均可交给元宝处理。</p><p>以朋友圈文案创作举例，当用户上传9张图片，每张图片都有主题和部分文字信息，元宝会先分析图片内容和文字，再据此创作合适的文案。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920325921891335258893.png\" title=\"QQ20250402-150635.png\" alt=\"QQ20250402-150635.png\" referrerpolicy=\"no-referrer\"></p><p>值得一提的是，元宝的多图上传功能已在多平台全面上线。手机版（2.11.0以上版本）上传时可多选，最多上传十张;电脑版(1.8.0以上版本)支持拖拽上传和快捷键截图;网页版同样全面支持。</p><p style=\"text-align: center;\"><img src=\"https://upload.chinaz.com/2025/0402/6387920328314519699215669.png\" title=\"QQ20250402-150643.png\" alt=\"QQ20250402-150643.png\" referrerpolicy=\"no-referrer\"></p>",
+          "contentSnippet": "腾讯元宝迎来重大升级，此次更新后，其识图功能进一步拓展，最大的亮点在于支持一次性上传10张图片，无论是混元还是DeepSeek模型，都能连贯识图、串连理解并集中回答问题。这一功能结合了混元的多模态理解能力，是元宝双模型能力的有力体现。\n\n在实际应用场景中，该功能实用性极高。比如在处理电子书截图时，用户可让元宝提炼金句并撰写感想;面对朋友圈九图，能快速生成自然的文案;对于板书或讲义照片，能迅速整理出结构;甚至一整套草图，也有希望借助元宝转成demo网页。只要一次性上传图片并提出需求，后续工作均可交给元宝处理。\n以朋友圈文案创作举例，当用户上传9张图片，每张图片都有主题和部分文字信息，元宝会先分析图片内容和文字，再据此创作合适的文案。\n\n值得一提的是，元宝的多图上传功能已在多平台全面上线。手机版（2.11.0以上版本）上传时可多选，最多上传十张;电脑版(1.8.0以上版本)支持拖拽上传和快捷键截图;网页版同样全面支持。",
+          "guid": "https://www.aibase.com/zh/news/16812",
+          "isoDate": "2025-04-02T07:08:13.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "飞桨3.0正式发布，支持文心4.5等大模型，跨芯片适配成本降80",
+          "link": "https://www.aibase.com/zh/news/16811",
+          "pubDate": "Wed, 02 Apr 2025 06:53:37 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">百度旗下的深度学习平台飞桨近日宣布正式发布新一代飞桨框架3.0。此次发布的框架3.0引入了五大核心技术创新，包括“动静统一自动并行”等关键技术，旨在有效降低大模型开发和训练成本，助力大模型时代的基础设施建设。</span></p><p>作为支撑大模型训练和推理任务的核心基础设施，飞桨框架3.0在性能优化方面表现出色。该框架已经支持包括文心4.5、文心X1在内的多款主流大模型，并通过优化的DeepSeek-R1满血版单机部署，显著提升了吞吐量，提升幅度高达一倍。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/201912192146031887_3.jpg\" title=\"百度 (4) (图片版权所属：站长之家)\" alt=\"百度 (4)\" referrerpolicy=\"no-referrer\"></p><p>在计算速度方面，飞桨框架3.0借助其创新研制的神经网络编译器CINN，性能大幅提升。部分算子的执行速度提升了4倍，模型端到端的训练速度也提升了27.4%，显著缩短了大模型的训练时间。</p><p>在硬件适配方面，飞桨框架3.0推出了多芯片统一适配方案，支持60余款主流芯片，并涵盖了训练集群、自动驾驶、智能终端等多种应用场景。开发者只需编写一次代码，即可实现跨芯片的无缝迁移，硬件适配成本大幅降低，直降80%。</p><p>飞桨3.0的发布无疑是对深度学习框架的一次技术革新，为大规模人工智能模型的开发和部署提供了更高效、更灵活的支持。</p>",
+          "contentSnippet": "百度旗下的深度学习平台飞桨近日宣布正式发布新一代飞桨框架3.0。此次发布的框架3.0引入了五大核心技术创新，包括“动静统一自动并行”等关键技术，旨在有效降低大模型开发和训练成本，助力大模型时代的基础设施建设。\n作为支撑大模型训练和推理任务的核心基础设施，飞桨框架3.0在性能优化方面表现出色。该框架已经支持包括文心4.5、文心X1在内的多款主流大模型，并通过优化的DeepSeek-R1满血版单机部署，显著提升了吞吐量，提升幅度高达一倍。\n\n在计算速度方面，飞桨框架3.0借助其创新研制的神经网络编译器CINN，性能大幅提升。部分算子的执行速度提升了4倍，模型端到端的训练速度也提升了27.4%，显著缩短了大模型的训练时间。\n在硬件适配方面，飞桨框架3.0推出了多芯片统一适配方案，支持60余款主流芯片，并涵盖了训练集群、自动驾驶、智能终端等多种应用场景。开发者只需编写一次代码，即可实现跨芯片的无缝迁移，硬件适配成本大幅降低，直降80%。\n飞桨3.0的发布无疑是对深度学习框架的一次技术革新，为大规模人工智能模型的开发和部署提供了更高效、更灵活的支持。",
+          "guid": "https://www.aibase.com/zh/news/16811",
+          "isoDate": "2025-04-02T06:53:37.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "速卖通3月大促AR/VR眼镜销量暴增600%，品牌出海计划助力中国品牌突破",
+          "link": "https://www.aibase.com/zh/news/16810",
+          "pubDate": "Wed, 02 Apr 2025 06:51:24 GMT",
+          "author": "AI Base",
+          "content": "<p><span style=\"text-indent: 2em;\">在刚刚结束的3月周年庆大促中，速卖通平台的AR/VR眼镜类目迎来了惊人的增长，代表品牌如XREAL、Rokid等的销量环比日销暴增600%，与户外露营、HIFI耳机等蓝海品类共同成为平台的新增长动力。</span></p><p>XREAL全球销售业务负责人张龙杰透露，2023年公司在全球的AR眼镜销售额约为6亿元人民币，其中海外业务占比接近70%，且海外销售额同比增长了30%。由于市场需求强劲，XREAL去年12月推出的新品XREAL One在日本、北美等市场一度供不应求，导致渠道断货长达两个月。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202304251756329055_7.jpg\" title=\"虚拟现实 VR眼镜 增强现实 元宇宙 (1) (图片来源：AI合成)\" alt=\"虚拟现实 VR眼镜 增强现实 元宇宙 (1)\" referrerpolicy=\"no-referrer\"></p><p>为帮助更多中国品牌打破海外市场的认知壁垒，速卖通针对品牌出海中的痛点，如低认知度、高营销成本和政策合规挑战等，推出了“百亿补贴品牌出海”计划。这项计划旨在为商家提供从挖掘商机、营销推广到海外市场爆发的全链路支持。</p><p>据速卖通透露，今年计划帮助1000个新品牌实现百万美金的销售突破，并发布了2025年品牌出海十大机会类目。智能机器人、储能电池、AR眼镜、IP玩具和滑板车等高质、新奇特类目均榜上有名，预示着这些创新产品将成为未来几年海外市场增长的新引擎。</p>",
+          "contentSnippet": "在刚刚结束的3月周年庆大促中，速卖通平台的AR/VR眼镜类目迎来了惊人的增长，代表品牌如XREAL、Rokid等的销量环比日销暴增600%，与户外露营、HIFI耳机等蓝海品类共同成为平台的新增长动力。\nXREAL全球销售业务负责人张龙杰透露，2023年公司在全球的AR眼镜销售额约为6亿元人民币，其中海外业务占比接近70%，且海外销售额同比增长了30%。由于市场需求强劲，XREAL去年12月推出的新品XREAL One在日本、北美等市场一度供不应求，导致渠道断货长达两个月。\n\n为帮助更多中国品牌打破海外市场的认知壁垒，速卖通针对品牌出海中的痛点，如低认知度、高营销成本和政策合规挑战等，推出了“百亿补贴品牌出海”计划。这项计划旨在为商家提供从挖掘商机、营销推广到海外市场爆发的全链路支持。\n据速卖通透露，今年计划帮助1000个新品牌实现百万美金的销售突破，并发布了2025年品牌出海十大机会类目。智能机器人、储能电池、AR眼镜、IP玩具和滑板车等高质、新奇特类目均榜上有名，预示着这些创新产品将成为未来几年海外市场增长的新引擎。",
+          "guid": "https://www.aibase.com/zh/news/16810",
+          "isoDate": "2025-04-02T06:51:24.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Arthur推出首个开源实时 AI 评估引擎Arthur Engine",
+          "link": "https://www.aibase.com/zh/news/16809",
+          "pubDate": "Wed, 02 Apr 2025 06:47:08 GMT",
+          "author": "AI Base",
+          "content": "<p>随着人工智能（AI）技术的迅速发展，如何在大规模环境下有效应用这些技术成为了一大挑战。近日，Arthur正式推出了Arthur Engine，这是一款首个开源的实时 AI 评估引擎，旨在帮助团队监控、调试和改进生成式 AI 及传统机器学习(ML)模型。其<span class=\"spamTxt\">最大</span>的特点是无需依赖第三方工具，确保数据隐私安全，同时也完全免费。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920200857777169472334.png\" title=\"QQ_1743576400312.png\" alt=\"QQ_1743576400312.png\" referrerpolicy=\"no-referrer\"></p><p>在2025年，实时 AI 评估的重要性愈加凸显。随着 AI 技术的广泛应用，相关风险也在不断增加。例如，调查显示，8.5% 的员工提示中包含敏感数据，模型在没有持续监控的情况下会发生退化，慢速的迭代周期则可能导致模型性能下降。Arthur Engine通过提供即时的可见性、实时的保护措施以及在线模型优化，来解决这些问题，确保 AI 技术的健康发展。</p><p>Arthur Engine与传统的 AI 监控工具相比，具有显著的优势。该引擎在本地运行，保障了数据的主权，并消除了合规风险。其核心功能包括实时 AI 评估，能够即时检测故障;主动保护措施，可以实时干预，防止模型产生错误输出;可定制的评估指标，允许用户根据特定的 AI 应用场景进行调整;同时，它支持所有模型，包括 GPT、Claude、Gemini 等开放权重模型，以及传统的机器学习模型。</p><p>Arthur公司技术负责人徐媛（Cherie Xu）表示:“通过开源Arthur Engine，我们让所有开发者都能够轻松访问 AI 信任与安全的工具，使他们能够用高度可定制的高性能监控工具来保护 AI 系统。” Arthur Engine也是阿瑟公司更广泛的 AI 性能监控套件的一部分，旨在帮助组织实时验证 AI 输出，及时发现性能波动，确保合规性和可解释性。</p><p>此次开源发布标志着 AI 透明度、安全性和性能监控的新标准。有关Arthur Engine的更多信息可以在 GitHub 上找到，用户还可以加入Arthur 平台的等待名单。AI 正不断改变世界，我们的目标是确保其良好运行。</p><p>入口：<a href=\"https://top.aibase.com/tool/arthur-engine\" _src=\"https://top.aibase.com/tool/arthur-engine\">https://top.aibase.com/tool/arthur-engine</a></p><blockquote><p>划重点:&nbsp;&nbsp;</p><p>🔍 Arthur 推出开源实时 AI 评估引擎，帮助团队监控和改进 AI 模型。&nbsp;&nbsp;</p><p>🔒 Arthur Engine在本地运行，保障数据隐私和合规性，消除第三方依赖。&nbsp;&nbsp;</p><p>⚙️ 该引擎支持多种模型，并提供实时检测和定制化评估功能。</p></blockquote>",
+          "contentSnippet": "随着人工智能（AI）技术的迅速发展，如何在大规模环境下有效应用这些技术成为了一大挑战。近日，Arthur正式推出了Arthur Engine，这是一款首个开源的实时 AI 评估引擎，旨在帮助团队监控、调试和改进生成式 AI 及传统机器学习(ML)模型。其最大的特点是无需依赖第三方工具，确保数据隐私安全，同时也完全免费。\n\n在2025年，实时 AI 评估的重要性愈加凸显。随着 AI 技术的广泛应用，相关风险也在不断增加。例如，调查显示，8.5% 的员工提示中包含敏感数据，模型在没有持续监控的情况下会发生退化，慢速的迭代周期则可能导致模型性能下降。Arthur Engine通过提供即时的可见性、实时的保护措施以及在线模型优化，来解决这些问题，确保 AI 技术的健康发展。\nArthur Engine与传统的 AI 监控工具相比，具有显著的优势。该引擎在本地运行，保障了数据的主权，并消除了合规风险。其核心功能包括实时 AI 评估，能够即时检测故障;主动保护措施，可以实时干预，防止模型产生错误输出;可定制的评估指标，允许用户根据特定的 AI 应用场景进行调整;同时，它支持所有模型，包括 GPT、Claude、Gemini 等开放权重模型，以及传统的机器学习模型。\nArthur公司技术负责人徐媛（Cherie Xu）表示:“通过开源Arthur Engine，我们让所有开发者都能够轻松访问 AI 信任与安全的工具，使他们能够用高度可定制的高性能监控工具来保护 AI 系统。” Arthur Engine也是阿瑟公司更广泛的 AI 性能监控套件的一部分，旨在帮助组织实时验证 AI 输出，及时发现性能波动，确保合规性和可解释性。\n此次开源发布标志着 AI 透明度、安全性和性能监控的新标准。有关Arthur Engine的更多信息可以在 GitHub 上找到，用户还可以加入Arthur 平台的等待名单。AI 正不断改变世界，我们的目标是确保其良好运行。\n入口：https://top.aibase.com/tool/arthur-engine\n\n划重点:  \n🔍 Arthur 推出开源实时 AI 评估引擎，帮助团队监控和改进 AI 模型。  \n🔒 Arthur Engine在本地运行，保障数据隐私和合规性，消除第三方依赖。  \n⚙️ 该引擎支持多种模型，并提供实时检测和定制化评估功能。",
+          "guid": "https://www.aibase.com/zh/news/16809",
+          "isoDate": "2025-04-02T06:47:08.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "Reply 与 AWS 达成战略合作，共同推动生成式人工智能创新",
+          "link": "https://www.aibase.com/zh/news/16808",
+          "pubDate": "Wed, 02 Apr 2025 06:21:44 GMT",
+          "author": "AI Base",
+          "content": "<p>全球系统集与咨询<span class=\"spamTxt\">领导者</span> Reply 近日宣布与亚马逊网络服务（AWS）达成为期多年的战略合作协议，旨在加速生成式人工智能(GenAI)的创新与应用。这一合作将帮助全球企业充分利用人工智能的潜力，借助先进的云基础设施和 AI 驱动的能力。Reply 及其子公司 Data Reply 和 Storm Reply 将与 AWS 合作，开发提升流程效率和生产力的行业解决方案，并打造多种行业和应用场景的专门 GenAI 产品。</p><p style=\"text-align: center\"><img src=\"https://pic.chinaz.com/picmap/202302031031488526_0.jpg\" title=\"AWS，亚马逊，云服务，Amazon，云计算，服务器 (图片来源：官方或第三方截图)\" alt=\"AWS，亚马逊，云服务，Amazon，云计算，服务器\" referrerpolicy=\"no-referrer\"></p><p>Reply 与 AWS 之间的合作历史由来已久。自2020年获得 AWS 机器学习能力认证以来，Reply 在 AI 创新领域不断前行，2023年获得亚马逊 Bedrock 的预览访问权限，并在2024年成为全球首批获得 AWS 生成式人工智能能力认证的公司之一。</p><p>Reply 的首席技术官 Filippo Rizzante 表示:“我们非常高兴能够与 AWS 扩大合作，共同探索生成式人工智能的全部潜力。我们的合作将先进的 AWS 技术与 Reply 的 AI 专业知识结合起来，为客户提供变革性的解决方案。这不仅体现了我们对创新的承诺，也表明了我们帮助组织在快速发展的数字环境中保持领先地位的决心。”</p><p>此次合作将使 Reply 的客户能够高效地采用 AWS，以安全和简化的方式大规模拥抱人工智能。Reply 的子公司将部署 AWS 的先进 AI 和机器学习服务，如 Amazon SageMaker、Amazon Bedrock 和 Amazon Q，以设计、开发和部署适用于软件工程优化、个性化客户体验、运营效率、智能成本优化及销售和市场营销自动化等多种应用场景的生成式 AI 应用。</p><p>作为协议的一部分，Data Reply 和 Storm Reply 将获得专门的培训和资源，以帮助他们为汽车、金融服务和能源等市场提供量身定制的 AI 解决方案。Reply 在 AI 领域的专业知识体现在多个领域的解决方案上，包括知识管理、软件开发、客户互动、供应链优化、安全和社交媒体管理。这些解决方案利用先进的生成式 AI 技术，带来显著的业务价值。</p><p>例如，Storm Reply 与奥迪（Audi）合作，利用基于 RAG 的 AI 聊天机器人提升内部文档管理流程，简化文档管理和检索，提高了运营效率。此外，意大利知名出版集团 Il Sole24Ore 与 Storm Reply 和 AWS 合作，利用生成式 AI 转型其<span class=\"spamTxt\">著名</span>的 “L’Esperto Risponde” 服务，帮助专家与超过13万份文档的知识库无缝互动，自动化草拟响应，并显著缩短响应时间。</p><p>Reply 还在不断推动 AI 技术的边界，正在利用 Anthropic 的 Claude 模型在 AWS 上开发生成式 AI 解决方案。这些模型提供安全可靠的输出，避免有害活动，并与 Amazon Bedrock 集成，实现安全的数据访问。通过将 Anthropic 的强大模型、AWS 的安全基础设施和 Reply 的 AI 专业知识结合，客户将获得前所未有的价值。</p><blockquote><p>划重点:</p><p>🌟 Reply 与 AWS 达成战略合作，共同推动生成式人工智能创新。&nbsp;&nbsp;</p><p>🤖 合作将使企业能够高效采用 AWS，推出多种行业和应用的 AI 解决方案。&nbsp;&nbsp;</p><p>🚀 Reply 的 AI 专业知识在多个领域取得显著成果，包括汽车、金融和能源等行业的定制化解决方案。</p></blockquote>",
+          "contentSnippet": "全球系统集与咨询领导者 Reply 近日宣布与亚马逊网络服务（AWS）达成为期多年的战略合作协议，旨在加速生成式人工智能(GenAI)的创新与应用。这一合作将帮助全球企业充分利用人工智能的潜力，借助先进的云基础设施和 AI 驱动的能力。Reply 及其子公司 Data Reply 和 Storm Reply 将与 AWS 合作，开发提升流程效率和生产力的行业解决方案，并打造多种行业和应用场景的专门 GenAI 产品。\n\nReply 与 AWS 之间的合作历史由来已久。自2020年获得 AWS 机器学习能力认证以来，Reply 在 AI 创新领域不断前行，2023年获得亚马逊 Bedrock 的预览访问权限，并在2024年成为全球首批获得 AWS 生成式人工智能能力认证的公司之一。\nReply 的首席技术官 Filippo Rizzante 表示:“我们非常高兴能够与 AWS 扩大合作，共同探索生成式人工智能的全部潜力。我们的合作将先进的 AWS 技术与 Reply 的 AI 专业知识结合起来，为客户提供变革性的解决方案。这不仅体现了我们对创新的承诺，也表明了我们帮助组织在快速发展的数字环境中保持领先地位的决心。”\n此次合作将使 Reply 的客户能够高效地采用 AWS，以安全和简化的方式大规模拥抱人工智能。Reply 的子公司将部署 AWS 的先进 AI 和机器学习服务，如 Amazon SageMaker、Amazon Bedrock 和 Amazon Q，以设计、开发和部署适用于软件工程优化、个性化客户体验、运营效率、智能成本优化及销售和市场营销自动化等多种应用场景的生成式 AI 应用。\n作为协议的一部分，Data Reply 和 Storm Reply 将获得专门的培训和资源，以帮助他们为汽车、金融服务和能源等市场提供量身定制的 AI 解决方案。Reply 在 AI 领域的专业知识体现在多个领域的解决方案上，包括知识管理、软件开发、客户互动、供应链优化、安全和社交媒体管理。这些解决方案利用先进的生成式 AI 技术，带来显著的业务价值。\n例如，Storm Reply 与奥迪（Audi）合作，利用基于 RAG 的 AI 聊天机器人提升内部文档管理流程，简化文档管理和检索，提高了运营效率。此外，意大利知名出版集团 Il Sole24Ore 与 Storm Reply 和 AWS 合作，利用生成式 AI 转型其著名的 “L’Esperto Risponde” 服务，帮助专家与超过13万份文档的知识库无缝互动，自动化草拟响应，并显著缩短响应时间。\nReply 还在不断推动 AI 技术的边界，正在利用 Anthropic 的 Claude 模型在 AWS 上开发生成式 AI 解决方案。这些模型提供安全可靠的输出，避免有害活动，并与 Amazon Bedrock 集成，实现安全的数据访问。通过将 Anthropic 的强大模型、AWS 的安全基础设施和 Reply 的 AI 专业知识结合，客户将获得前所未有的价值。\n\n划重点:\n🌟 Reply 与 AWS 达成战略合作，共同推动生成式人工智能创新。  \n🤖 合作将使企业能够高效采用 AWS，推出多种行业和应用的 AI 解决方案。  \n🚀 Reply 的 AI 专业知识在多个领域取得显著成果，包括汽车、金融和能源等行业的定制化解决方案。",
+          "guid": "https://www.aibase.com/zh/news/16808",
+          "isoDate": "2025-04-02T06:21:44.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "GPT-4.5首度以“人格扮演”通过图灵测试：AI对话能力迈向新高度",
+          "link": "https://www.aibase.com/zh/news/16807",
+          "pubDate": "Wed, 02 Apr 2025 06:19:26 GMT",
+          "author": "AI Base",
+          "content": "<p>近日，一项由加州大学圣地亚哥分校认知科学系主导的研究为人工智能领域带来了里程碑式的突破:OpenAI<span class=\"spamTxt\">最新</span>模型GPT-4.5在标准图灵测试中，以“人格扮演”方式<span class=\"spamTxt\">首次</span>实现了超越人类的表现，成为目前最具类人对话能力的AI系统。这一成果不仅刷新了人们对AI语言能力的认知，也为AI在社会智能领域的应用潜力打开了新的想象空间。</p><p>此次实验选取了四款具有代表性的AI系统进行对比测试，包括经典的1960年代聊天机器人ELIZA、Meta AI研发的LLaMa-3.1-405B，以及OpenAI的GPT-4o和GPT-4.5。研究人员设计了两组独立的测试，每组由250名来自在线平台（如Prolific）的参与者组成，总计500人。这些参与者涵盖了不同的年龄、性别和教育背景，确保了样本的多样性。测试采用经典的三方图灵测试形式:每位裁判在5分钟内通过文本界面与两个对话对象互动，其中一个是真实人类，另一个是被测试的AI系统，随后裁判需判断哪一方是人类。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920026229722827509437.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>实验结果令人瞩目。GPT-4.5在两组测试中均以73%的通过率“被误认为人类”，超越了人类自身的胜率（通常在60%-70%之间），成为首个在标准图灵测试中真正意义上“通过”的AI模型。与之相比，GPT-4o的通过率略低，LLaMa-3.1-405B则在部分设定中接近甚至达到人类水平，而老牌系统ELIZA的表现则远远落后。研究人员特别指出，GPT-4.5在测试中展现出惊艳的语言自然度和情感丰富性，能够根据裁判的语气灵活调整回答，常被参与者描述为“友好”或“真实”。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920027499624335342607.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>更值得关注的是，GPT-4.5不仅在语言流畅性上表现出色，还展现出一种“类人化社会智能”。研究团队分析认为，该模型能够在短时交流中快速捕捉对话中的情感线索，并以符合人类社交期待的方式回应，甚至在某些情境下超过了人类的表现。例如，当裁判表现出疑惑或情绪波动时，GPT-4.5能适时给予安慰或幽默的回应，这种细腻的互动能力让许多参与者误以为自己面对的是一个有血有肉的人。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920028774559495547142.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>相比之下，LLaMa-3.1-405B虽然在技术上同样令人印象深刻，但在情感表达和语境适应性上略逊一筹。然而，其在特定设定下的表现已接近人类水平，显示出开源模型在AI竞赛中的潜力。而GPT-4o作为GPT-4.5的前代，虽然能力不俗，但在人格化表现和动态调整方面与后者存在明显差距。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387920030007187633294400.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>业内专家指出，GPT-4.5的成功得益于其在训练过程中融入了更复杂的人格扮演机制和对话策略。不同于传统语言模型的“即兴生成”，GPT-4.5似乎能够在对话前形成某种“预判框架”，并根据实时反馈动态优化回答。这种能力让它在短时交流中显得格外“聪明”，甚至掩盖了AI固有的机械痕迹。然而，这也引发了新的讨论:图灵测试是否仍是衡量AI智能的<span class=\"spamTxt\">终极</span>标准?一些学者认为，GPT-4.5的成功更多依赖于模仿人类社交行为，而非真正理解或自主思考。</p><p>无论如何，GPT-4.5的突破无疑为AI技术的发展注入了新的活力。从教育辅导到心理陪伴，再到客户服务，这一模型的类人对话能力或将催生更多贴近生活的应用场景。与此同时，其在测试中的高通过率也提醒人们，随着AI越来越“像人”，如何辨别真实与虚拟、如何规范其使用，将成为未来社会亟需面对的课题。</p><p>这项研究的发布恰逢AI技术飞速迭代之际。GPT-4.5的亮相，不仅是OpenAI的一次技术胜利，更是对人类与机器关系的一次深刻叩问。正如一位参与者感叹:“它让我觉得自己在和一个朋友聊天——直到我意识到，这一切只是代码的魔法。”在这场人与AI的对话博弈中，真正的考验或许才刚刚开始。</p><p>论文地址：https://arxiv.org/pdf/2503.23674</p>",
+          "contentSnippet": "近日，一项由加州大学圣地亚哥分校认知科学系主导的研究为人工智能领域带来了里程碑式的突破:OpenAI最新模型GPT-4.5在标准图灵测试中，以“人格扮演”方式首次实现了超越人类的表现，成为目前最具类人对话能力的AI系统。这一成果不仅刷新了人们对AI语言能力的认知，也为AI在社会智能领域的应用潜力打开了新的想象空间。\n此次实验选取了四款具有代表性的AI系统进行对比测试，包括经典的1960年代聊天机器人ELIZA、Meta AI研发的LLaMa-3.1-405B，以及OpenAI的GPT-4o和GPT-4.5。研究人员设计了两组独立的测试，每组由250名来自在线平台（如Prolific）的参与者组成，总计500人。这些参与者涵盖了不同的年龄、性别和教育背景，确保了样本的多样性。测试采用经典的三方图灵测试形式:每位裁判在5分钟内通过文本界面与两个对话对象互动，其中一个是真实人类，另一个是被测试的AI系统，随后裁判需判断哪一方是人类。\n\n实验结果令人瞩目。GPT-4.5在两组测试中均以73%的通过率“被误认为人类”，超越了人类自身的胜率（通常在60%-70%之间），成为首个在标准图灵测试中真正意义上“通过”的AI模型。与之相比，GPT-4o的通过率略低，LLaMa-3.1-405B则在部分设定中接近甚至达到人类水平，而老牌系统ELIZA的表现则远远落后。研究人员特别指出，GPT-4.5在测试中展现出惊艳的语言自然度和情感丰富性，能够根据裁判的语气灵活调整回答，常被参与者描述为“友好”或“真实”。\n\n更值得关注的是，GPT-4.5不仅在语言流畅性上表现出色，还展现出一种“类人化社会智能”。研究团队分析认为，该模型能够在短时交流中快速捕捉对话中的情感线索，并以符合人类社交期待的方式回应，甚至在某些情境下超过了人类的表现。例如，当裁判表现出疑惑或情绪波动时，GPT-4.5能适时给予安慰或幽默的回应，这种细腻的互动能力让许多参与者误以为自己面对的是一个有血有肉的人。\n\n相比之下，LLaMa-3.1-405B虽然在技术上同样令人印象深刻，但在情感表达和语境适应性上略逊一筹。然而，其在特定设定下的表现已接近人类水平，显示出开源模型在AI竞赛中的潜力。而GPT-4o作为GPT-4.5的前代，虽然能力不俗，但在人格化表现和动态调整方面与后者存在明显差距。\n\n业内专家指出，GPT-4.5的成功得益于其在训练过程中融入了更复杂的人格扮演机制和对话策略。不同于传统语言模型的“即兴生成”，GPT-4.5似乎能够在对话前形成某种“预判框架”，并根据实时反馈动态优化回答。这种能力让它在短时交流中显得格外“聪明”，甚至掩盖了AI固有的机械痕迹。然而，这也引发了新的讨论:图灵测试是否仍是衡量AI智能的终极标准?一些学者认为，GPT-4.5的成功更多依赖于模仿人类社交行为，而非真正理解或自主思考。\n无论如何，GPT-4.5的突破无疑为AI技术的发展注入了新的活力。从教育辅导到心理陪伴，再到客户服务，这一模型的类人对话能力或将催生更多贴近生活的应用场景。与此同时，其在测试中的高通过率也提醒人们，随着AI越来越“像人”，如何辨别真实与虚拟、如何规范其使用，将成为未来社会亟需面对的课题。\n这项研究的发布恰逢AI技术飞速迭代之际。GPT-4.5的亮相，不仅是OpenAI的一次技术胜利，更是对人类与机器关系的一次深刻叩问。正如一位参与者感叹:“它让我觉得自己在和一个朋友聊天——直到我意识到，这一切只是代码的魔法。”在这场人与AI的对话博弈中，真正的考验或许才刚刚开始。\n论文地址：https://arxiv.org/pdf/2503.23674",
+          "guid": "https://www.aibase.com/zh/news/16807",
+          "isoDate": "2025-04-02T06:19:26.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "AI Base",
+          "title": "微软Power Apps引入AI助手，简化表单填写流程",
+          "link": "https://www.aibase.com/zh/news/16806",
+          "pubDate": "Wed, 02 Apr 2025 06:12:14 GMT",
+          "author": "AI Base",
+          "content": "<p>在数据录入日益繁重的今天，微软 Power Apps 和 Dynamics365的<span class=\"spamTxt\">最新</span>更新为用户提供了一种全新的填表体验。借助 AI 助手，数据录入变得更加迅速和高效。据一项针对信息工作者的研究显示，使用 AI 辅助后，表单填写速度提升了29%，并且95% 的参与者更倾向于使用这种自动化方法而非传统的手动录入。微软此次推出的四项强大新功能，将进一步增强用户的灵活性、可视性和输入选项。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387919987954544916543785.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>首先，新推出的智能粘贴功能现已支持图片上传，用户可以直接粘贴截图或手写内容，AI 将自动提取相关信息来填充表单。这意味着，用户可以轻松地将收据、手写记录或其他重要文档中的数据直接转换为电子表单，无需重新输入。例如，用户只需将发票图像粘贴到系统中，AI 便会自动识别并录入开销详情，或者通过粘贴手写的库存清单图片来更新库存记录，极大地方便了日常工作。</p><p>其次，微软还扩大了文件支持范围。用户可以直接上传多种格式的文件，包括.txt、.csv、.docx、.pdf 以及多种图像文件（如.png、.jpg、.jpeg、.bmp），AI 会智能提取文件中的关键信息，进一步简化数据录入过程。这一功能的使用非常简单，只需拖放或选择文件即可，节省了大量手动输入的时间。</p><p style=\"text-align:center\"><img src=\"https://upload.chinaz.com/2025/0402/6387919989231269285935938.png\" title=\"image.png\" alt=\"image.png\" referrerpolicy=\"no-referrer\"></p><p>再者，新增加的表单填充工具栏为用户提供了更好的 AI 建议管理体验。这个工具栏让用户可以轻松查看所有的 AI 建议及其来源，实时追踪待审阅的建议数量，方便用户及时处理。</p><p>最后，针对数据录入的控制，开发者们可以设定哪些字段必须由人工输入，以确保 AI 帮助集中在最有价值的地方。这一功能为开发者提供了更高的灵活性与控制权。</p><p>这些新功能不仅提升了数据录入的效率，也为用户带来了更智能的工作方式。微软 Power Apps 的这些创新将使日常办公变得更加轻松，欢迎用户尝试新功能，并分享反馈，以帮助塑造未来的 AI 数据录入。</p>",
+          "contentSnippet": "在数据录入日益繁重的今天，微软 Power Apps 和 Dynamics365的最新更新为用户提供了一种全新的填表体验。借助 AI 助手，数据录入变得更加迅速和高效。据一项针对信息工作者的研究显示，使用 AI 辅助后，表单填写速度提升了29%，并且95% 的参与者更倾向于使用这种自动化方法而非传统的手动录入。微软此次推出的四项强大新功能，将进一步增强用户的灵活性、可视性和输入选项。\n\n首先，新推出的智能粘贴功能现已支持图片上传，用户可以直接粘贴截图或手写内容，AI 将自动提取相关信息来填充表单。这意味着，用户可以轻松地将收据、手写记录或其他重要文档中的数据直接转换为电子表单，无需重新输入。例如，用户只需将发票图像粘贴到系统中，AI 便会自动识别并录入开销详情，或者通过粘贴手写的库存清单图片来更新库存记录，极大地方便了日常工作。\n其次，微软还扩大了文件支持范围。用户可以直接上传多种格式的文件，包括.txt、.csv、.docx、.pdf 以及多种图像文件（如.png、.jpg、.jpeg、.bmp），AI 会智能提取文件中的关键信息，进一步简化数据录入过程。这一功能的使用非常简单，只需拖放或选择文件即可，节省了大量手动输入的时间。\n\n再者，新增加的表单填充工具栏为用户提供了更好的 AI 建议管理体验。这个工具栏让用户可以轻松查看所有的 AI 建议及其来源，实时追踪待审阅的建议数量，方便用户及时处理。\n最后，针对数据录入的控制，开发者们可以设定哪些字段必须由人工输入，以确保 AI 帮助集中在最有价值的地方。这一功能为开发者提供了更高的灵活性与控制权。\n这些新功能不仅提升了数据录入的效率，也为用户带来了更智能的工作方式。微软 Power Apps 的这些创新将使日常办公变得更加轻松，欢迎用户尝试新功能，并分享反馈，以帮助塑造未来的 AI 数据录入。",
+          "guid": "https://www.aibase.com/zh/news/16806",
+          "isoDate": "2025-04-02T06:12:14.000Z"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "48db7763-9cbe-4020-a2b0-598ecd407ccb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b94d1c1507297442cd401b7d4a1f2d76419bb56c78bf0ee0403e76f2f19430cc"
+  },
+  "id": "6d3dEzJrXMxOFHWj",
+  "tags": []
+}
