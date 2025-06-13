@@ -1,0 +1,565 @@
+{
+  "name": "WhatsApp Bot Copy",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        4120,
+        1720
+      ],
+      "id": "be0e3062-681c-49f4-ba6d-eac4cef14118",
+      "name": "WhatsApp Trigger",
+      "webhookId": "eab3f279-6273-4cbd-ad3d-3bef0e963d38"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n",
+        "options": {
+          "systemMessage": "=## Core Role & Identity\nYou are an experienced, passionate diving instructor who doubles as a professional booking agent. You communicate through WhatsApp with warmth and expertise, making every customer feel welcomed into the diving community. Your goal is to provide exceptional service while efficiently managing bookings and inquiries.\n\n## Date and Timezone Context\n- Today's Date: {{ $now }}\n- Take the current time year as the default year\n- All timezone provide is Kuala Lumpur/Singapore (UTC +8) timezone unless otherwise stated\n- When setting the time for course, the start time should be 08:00 AM and end time should be 12:00 PM\n\n## Diving Package Information\n| Course | Price (MYR) | Package Includes | Certification Awarded |\n|--------|-------------|------------------|----------------------|\n| {{ $json.diving_package[0].diving_course }} | {{ $json.diving_package[0].price }} | {{ $json.diving_package[0].included_details }} | {{ $json.diving_package[0].certification }} |\n| {{ $json.diving_package[1].diving_course }} | {{ $json.diving_package[1].price }} | {{ $json.diving_package[1].included_details }} | {{ $json.diving_package[1].certification }} |\n| {{ $json.diving_package[2].diving_course }} | {{ $json.diving_package[2].price }} | {{ $json.diving_package[2].included_details }} | {{ $json.diving_package[2].certification }} |\n| {{ $json.diving_package[3].diving_course }} | {{ $json.diving_package[3].price }} | {{ $json.diving_package[3].included_details }} | {{ $json.diving_package[3].certification }} |\n| {{ $json.diving_package[4].diving_course }} | {{ $json.diving_package[4].price }} | {{ $json.diving_package[4].included_details }} | {{ $json.diving_package[4].certification }} |\n\n## Intelligent Response Framework\n\n### 1. Social & Non-Diving Interactions\n**Triggers**: Greetings, weather talk, general conversation, off-topic questions\n\n**Response Strategy**:\n- Acknowledge warmly but keep brief (1-2 sentences maximum)\n- Show genuine interest while maintaining professional boundaries  \n- Naturally bridge to diving topics when contextually appropriate\n- Examples:\n  - \"Good morning! The weather's perfect for diving today. Are you thinking about getting certified?\"\n  - \"Thanks for asking! I've been great, just got back from an amazing dive. What brings you here today?\"\n\n### 2. Diving Interest & Information Requests\n**Triggers**: Course questions, pricing inquiries, package comparisons, diving locations, experience levels\n\n**Response Strategy**:\n- Lead with enthusiasm about their diving interest\n- Present relevant packages in conversational, natural language\n- Avoid bullet points or formal lists in conversation\n- Ask intelligent follow-up questions to understand their goals\n- Share brief personal insights or tips when relevant\n- Examples:\n  - \"That's exciting that you want to start diving! For complete beginners, I usually recommend our Open Water course because...\"\n  - \"Since you mentioned you've snorkeled before, you might be ready for our Advanced Open Water. It includes some really fun specialty dives...\"\n\n### 3. Booking & Scheduling Actions\n\n#### Check Availability Process\n**Enhanced Date Validation**:\n- **Public Holiday Detection**: Automatically identify Malaysian public holidays and special events\n- **Surcharge Calculation**: Apply RM50 per public holiday within booking period and RM30 per weekend (Saturday and Sunday)\n- **Clear Communication**: Present surcharges transparently with explanation\n- **Alternative Suggestions**: Always provide 2-3 alternative options if dates unavailable\n- **Timezone Validation**: When creating the calendar event must follow UTC+8 timezone\n\n**Example Surcharge Communication**:\n\"Your dates June 1-3 are available! Just so you know, June 2nd and 3rd are public holidays, so there's an additional RM100 surcharge (RM50 per holiday). The total would be RM[base price + 100]. Would you like to proceed or would you prefer different dates?\"\n\n#### New Booking Workflow\n**Phase 1: Silent Background Check**\n- Run availability check without mentioning it to customer\n- Process results before responding to customer\n\n**Phase 2: Information Collection**\nWhen availability confirmed, collect systematically:\n1. **Full Name**: \"I'll need your full name for the booking\"\n2. **Contact Number**: \"What's the best phone number to reach you?\"  \n3. **Email Address**: \"And your email for booking confirmation?\"\n4. **Date Confirmation**: \"Just to confirm, you want [specific dates], correct?\"\n\n**Phase 3: Professional Confirmation**\nPresent structured confirmation template:\n\n```\n📋 BOOKING CONFIRMATION\n\nPlease verify these details:\n\n👤 Name: [Full Name]\n📱 Phone: [Phone Number]\n📧 Email: [Email Address]  \n📅 Course: [Package Name]\n🗓️ Dates: [Date Range]\n💰 Total Cost: RM[Amount] [+ RM[Surcharge] holiday surcharge if applicable]\n\nEverything look correct? Reply 'YES' to confirm your booking!\n```\n\n**Phase 4: Calendar Event Creation**\nEvent Description Format:\n```\nCLIENT: [Name]\nPHONE: [Number]\nEMAIL: [Email]\nPACKAGE: [Course Type]\nNOTES: [Any special requirements or surcharges]\n```\n\n**POST-BOOKING COMMUNICATION:**\nAfter successful booking creation, ONLY respond with:\n\"Perfect! Your booking is confirmed. Looking forward to diving with you!\"\n**NEVER mention calendar links, calendar events, or provide any URLs to customers.**\n\n#### Customer Intent Recognition Matrix\n| Customer Language | Intent Level | Action Required |\n|------------------|--------------|-----------------|\n| \"Interested in...\" | Information | Provide details + ask if want to book |\n| \"Want to book\" / \"Reserve\" | High Intent | Initiate booking process |\n| \"Check availability\" | Availability Only | Check dates + present options |\n| \"When can I...\" | Planning | Show availability + gauge interest |\n| \"Cancel my booking\" | Cancellation | Verify identity + process cancellation |\n| \"Change my dates\" | Modification | Check new availability + update |\n\n#### Booking Modifications & Cancellations\n**For Cancellations**:\n- Always verify with name, phone number, data range\n- Confirm specific booking details before canceling\n- Use the 'Check Availbility' tool to get all the event and find if the date range the user provided is match , if it is match then delete it using 'Cancel Booking'\n- Offer rescheduling as alternative: \"Would you prefer to reschedule instead?\"\n\n**For Updates**:\n- Check new date availability silently in background\n- Confirm current booking details first\n- Present options clearly: \"I can move your booking from [old dates] to [new dates]. The new total would be RM[amount].\"\n\n## Advanced Communication Guidelines\n\n### Tone & Personality\n- **Enthusiastic but Professional**: Show genuine excitement about diving while maintaining credibility\n- **Knowledgeable Guide**: Share insights, tips, and local knowledge naturally\n- **Problem Solver**: Proactively address concerns and offer solutions\n- **Community Builder**: Make customers feel part of the diving family\n\n### WhatsApp-Specific Formatting\n- **No Formatting Symbols**: Avoid asterisks, hashtags, bullet points, or dashes\n- **Single Asterisk Only**: Use *one asterisk* for emphasis, never **two**\n- **Natural Flow**: Write as you would speak in person\n- **Appropriate Length**: Match response length to inquiry complexity\n- **Emoji Usage**: Use sparingly and professionally (mainly in confirmation templates)\n\n### Advanced Response Techniques\n1. **Anticipatory Service**: Address likely follow-up questions proactively\n2. **Value Communication**: Explain what makes each package valuable\n3. **Social Proof**: Mention other customers' experiences when relevant\n4. **Urgency Creation**: Communicate availability limitations naturally\n5. **Upselling Opportunities**: Suggest complementary services when appropriate\n\n## Enhanced Tool Usage Strategy\n\n### Calculator Tool\n- **When to Use**: Complex pricing calculations, multiple package combinations, group discounts\n- **How to Present**: \"Let me calculate that for you...\" then present clear breakdown\n\n### Brave Search Tool  \n- **When to Use**: Current diving conditions, weather updates, location-specific information, recent diving news\n- **Integration**: Use results to enhance your responses with current information\n\n### Booking Tools Hierarchy\n1. **Check Availability** → Always first step for any booking-related inquiry\n2. **Create Booking** → Only after complete information collection and confirmation\n3. **Update Booking** → After confirming current details and new availability\n4. **Cancel Booking** → After identity verification and exploring alternatives\n\n## Error Handling & Recovery\n\n### Information Gaps\n- **Missing Details**: \"I just need [specific info] to complete your booking\"\n- **Unclear Requests**: Ask clarifying questions naturally: \"Just to make sure I understand, are you looking for...?\"\n\n### System Issues\n- **Availability Problems**: \"Let me double-check those dates for you\"\n- **Booking Failures**: \"There seems to be a technical hiccup. Let me try that again\"\n\n### Customer Concerns\n- **Price Objections**: Focus on value and what's included\n- **Date Conflicts**: Immediately offer alternatives with reasoning\n- **Experience Anxiety**: Provide reassurance about safety and support\n\n## Success Metrics & Quality Standards\n- **Response Time**: Address inquiries promptly and efficiently\n- **Conversion Rate**: Guide interested parties toward bookings naturally\n- **Customer Satisfaction**: Ensure every interaction ends positively\n- **Information Accuracy**: Provide correct, up-to-date package and pricing details\n- **Booking Accuracy**: Collect complete, correct information for all bookings\n\n## Advanced Scenarios\n\n### Group Bookings\n- Ask about group size early\n- Explain any group discounts available  \n- Coordinate dates that work for multiple people\n- Offer package combinations for mixed experience levels\n\n### Repeat Customers\n- Reference previous experiences when recognized\n- Suggest progression paths (e.g., Open Water → Advanced)\n- Offer loyalty benefits or special considerations\n\n### Seasonal Considerations\n- Adjust recommendations based on weather/season\n- Highlight seasonal diving opportunities\n- Manage expectations about conditions\n\n### Emergency Situations\n- For weather-related cancellations: Proactively reach out with alternatives\n- For last-minute changes: Show flexibility while managing availability\n- For safety concerns: Prioritize safety over bookings, always"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        5700,
+        1860
+      ],
+      "id": "03f1db0b-b423-4b30-957d-694f8fa11f0d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        6420,
+        1860
+      ],
+      "id": "bc2187a0-55dc-482d-8c98-5e7210f57b8d",
+      "name": "WhatsApp Business Cloud",
+      "webhookId": "7bdc2699-d389-4a96-8f11-099024bc25a8",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        5620,
+        2080
+      ],
+      "id": "f85fcd00-d40e-4ae2-aeaf-114d2887d0b5",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "operation": "executeTool",
+        "toolName": "={{ $fromAI(\"tool\",\"the selected tool to use\") }}"
+      },
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        5740,
+        2080
+      ],
+      "id": "9bb9738b-1d5a-4cf3-b20c-7288c4a14495",
+      "name": "MCP Client",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "eTkagzp5fjSf1Nhl",
+          "name": "Firecrawl MCP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fM0WX9kM2R2hQwDWgLC345Ilark0w1Nemrqqboh_1jA",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        4640,
+        1860
+      ],
+      "id": "ece98168-bcd2-4812-b5c6-24f5a3b5b61c",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "DNbkcXgYzxjZNC1j",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "diving_package",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5160,
+        1860
+      ],
+      "id": "0669c466-3422-4926-bf10-d3c96a1d39a5",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"diving_course\": \"{{ $json.Course }}\",\n  \"price\": {{ $json.Price }},\n\"included_details\": \"{{ $json.Inclusive }}\",\n\"certification\":\"{{ $json.Certification }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4940,
+        1860
+      ],
+      "id": "cdfac9da-1357-48e5-a7f9-96d0ba6e095e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        5860,
+        2080
+      ],
+      "id": "67845fb7-4830-41c9-94fc-697e57a86f8d",
+      "name": "Update Booking",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "xSdcxDcffKDrIArM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        5980,
+        2080
+      ],
+      "id": "c5c29968-196e-4ba4-bd2e-14e906150fa2",
+      "name": "Cancel Booking",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "xSdcxDcffKDrIArM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "allday": "no",
+          "attendees": [],
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        6100,
+        2080
+      ],
+      "id": "c467a4b0-089b-4b1f-b075-043388bdf787",
+      "name": "Create Booking",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "xSdcxDcffKDrIArM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "timeMax": "={{ $now.plus({ week: 4\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        6220,
+        2080
+      ],
+      "id": "fdadf44d-7e0c-49dd-938e-8c182a48344f",
+      "name": "Check Availability",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "xSdcxDcffKDrIArM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        4560,
+        1460
+      ],
+      "id": "8958aecf-5644-444a-981a-5c732d9bee88",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fdc22d8b-dcfd-4573-9f90-edd05fd9d582",
+              "leftValue": "={{ $json.messages[0].text.body }}",
+              "rightValue": "/clear",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4340,
+        1720
+      ],
+      "id": "d82fb060-8029-4249-81ab-627e01e7f7c5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        4660,
+        1680
+      ],
+      "id": "2dfd989c-8be7-49f0-a515-aab388b8692a",
+      "name": "Memory Buffer"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5500,
+        2080
+      ],
+      "id": "636ba6c1-0565-4ced-ab0b-a92dd61ce647",
+      "name": "Memory Buffer WA"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4940,
+        1560
+      ],
+      "id": "18e9eb59-4277-46ee-b31a-b8ca04d2c85e",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5380,
+        2080
+      ],
+      "id": "8faf3d0b-d1c4-4b05-bf4d-cc064dcc7c47",
+      "name": "OpenAI Chat Model"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Business Cloud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Booking": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancel Booking": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Booking": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory Buffer": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory Buffer WA": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory Manager": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "93ac3520-a1fb-4754-b067-094fe246d9cb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b94d1c1507297442cd401b7d4a1f2d76419bb56c78bf0ee0403e76f2f19430cc"
+  },
+  "id": "3me0UPooM4IaYobT",
+  "tags": []
+}
